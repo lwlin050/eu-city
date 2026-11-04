@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>奧捷斯匈旅遊城</title>
+<link rel="stylesheet" href="style.css">
+</head><body>
+<canvas id="c"></canvas>
+<div class="top"><button id="tg-top" class="tg" onclick="toggleTop()" aria-label="顯示或隱藏上方選單">☰</button><h1>奧・捷・斯・匈旅遊城</h1>
+<div class="row" id="cr"></div><div class="row" id="tr"></div></div>
+<div id="labels"></div><noscript><p style="position:fixed;top:40%;width:100%;text-align:center;color:#4a3626">此頁需要 JavaScript，請用 Safari／Chrome 開啟連結。</p></noscript>
+<button id="tg-dock" class="tg2" onclick="toggleDock()" aria-label="顯示或隱藏左側選單">✕</button><nav class="dock" aria-label="選單"><button id="m-view" onclick="subm('view')">🧭<small>檢視</small></button><button id="m-list" onclick="toggleIndex()">☰<small>清單</small></button><button id="m-game" onclick="openG()">🎮<small>遊戲</small></button><button id="m-trip" onclick="openT()">📋<small>行程</small></button><button id="m-snd" onclick="toggleSound()">🔇<small>靜音</small></button><button id="m-set" onclick="subm('set')">⚙<small>設定</small></button><button id="m-time" hidden style="display:none"></button></nav>
+<div id="subm"><div id="sub-view" class="subsec"><button class="sb" id="m-all" onclick="homeView();subm()">🌍 全景</button><button class="sb" id="m-bird" onclick="toggleBird()">⬆ 鳥瞰</button><button class="sb" id="m-pan" onclick="togglePan()">✥ 平移（單指拖曳移動）</button><button class="sb" id="m-ctr" onclick="centerView()">◎ 置中</button></div>
+<div id="sub-set" class="subsec"><div id="timebox"><span>☀</span><input type="range" id="tm" min="6" max="24" step=".25" value="18.5" aria-label="一天中的時間"><b id="tl">18:30</b><span>☾</span></div><button class="sb" id="m-pause" onclick="togglePause()">⏸ 暫停</button><button class="sb" id="m-role" onclick="openR();subm()">👥 角色管理</button><button class="sb" onclick="openB()">💾 備份／還原</button><div class="sndbox"><div id="snd-st">聲音：靜音</div><label><input type="checkbox" id="snd-amb" checked> 環境音與音樂</label><label><input type="checkbox" id="snd-voc" checked> 語音介紹</label><label>英文語音 <select id="snd-voice" style="max-width:150px"><option value="">自動</option></select></label><label>音量 <input type="range" id="snd-vol" min="0" max="100" value="60"></label></div></div></div>
+
+<aside id="index"><input id="q" type="search" placeholder="搜尋景點、餐廳、車站…" oninput="renderIndex()"><div id="ilist"></div></aside>
+<div class="legend"><span><i style="background:#e8734a"></i>景點</span><span><i style="background:#f2b632"></i>餐廳</span><span><i style="background:#5b8fd9"></i>博物館</span><span><i style="background:#3fb5a8"></i>交通</span><span><i style="background:#4aa3d9"></i>廁所</span><span><i style="background:#f2c230;border-radius:2px"></i>RegioJet</span></div>
+<div class="hint">拖曳旋轉 · 滾輪／雙指縮放 · 點城市看當地地圖</div>
+<div id="ckm" class="ckm"><div class="ckcard"><h3 id="ckt0"></h3><label>打卡角色 <select id="ckw"></select></label><label><input type="checkbox" id="ckg" checked onchange="getGps()"> 記錄我的 GPS 位置</label><small id="ckgs"></small><button class="gh" type="button" style="height:auto;padding:6px" onclick="getGps()">重新定位</button><label>或手動輸入座標 <input type="text" id="ckgm" placeholder="例如 25.03300, 121.56540" style="max-width:100%"></label><div class="stars" id="stars"></div><textarea id="ckt" rows="4" placeholder="寫下你的評論…"></textarea><label class="up">📷 選擇照片（最多 4 張）<input id="ckp" type="file" accept="image/*" multiple hidden></label><div id="ckprev" class="ckp"></div><div class="row2"><button class="gh" onclick="closeCk()">取消</button><button class="ckb" onclick="saveCk()">儲存打卡</button></div><small id="cknote"></small></div></div>
+<div id="gm" class="ckm"><div class="ckcard gcard"><div class="ghd"><b>🎮 遊戲中心</b><span id="gst">★ 0</span><button class="gh" onclick="closeG()">✕</button></div><div class="gtabs" id="gtabs"></div><div id="gbody"></div></div></div>
+<div id="bk" class="ckm"><div class="ckcard gcard"><div class="ghd"><b>💾 備份／還原</b><button class="gh" onclick="closeB()">✕</button></div><small id="bk-st"></small><label><input type="checkbox" id="bk-ph"> 含照片（檔案會很大）</label><div class="row2"><button class="gh" style="flex:1" onclick="bkExport()">產生備份</button><button class="gh" style="flex:1" onclick="bkCopy()">複製</button></div><textarea id="bk-t" rows="8" placeholder="備份內容會出現在這裡。要還原時，把備份內容貼在這裡，再按「還原」。"></textarea><button class="ckb" onclick="bkImport()">還原</button><small id="bk-m"></small></div></div>
+<div id="tp" class="ckm"><div class="ckcard gcard"><div class="ghd"><b>📋 行程規劃</b><button class="gh" onclick="closeT()">✕</button></div><div id="tpb"></div></div></div>
+<div id="rm" class="ckm"><div class="ckcard gcard"><div class="ghd"><b>👥 角色管理</b><button class="gh" onclick="closeR()">✕</button></div><div id="rbody"></div></div></div>
+<aside id="panel" aria-live="polite"></aside>
+<script src="three.min.js"></script>
+<script src="data.js"></script>
+<script src="assets.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+</body></html>
