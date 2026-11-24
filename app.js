@@ -447,9 +447,9 @@ function openB(){$('#bk').classList.add('open');subm();$('#bk-st').textContent='
 function closeB(){$('#bk').classList.remove('open')}
 async function bkExport(){const ph=$('#bk-ph').checked,ck={};for(const k of [...VIS]){const l=await dbGet(k);if(l.length)ck[k]=l.map(e=>ph?e:Object.assign({},e,{ph:[]}))}$('#bk-t').value=JSON.stringify({v:1,roles:ROLES,game:GS,trip:TRIP,rto:RTO,ck});$('#bk-m').textContent='已產生。按「複製」，或長按文字全選後複製，貼到備忘錄、LINE 或 NAS 保存。'}
 function bkCopy(){const t=$('#bk-t');t.select();try{navigator.clipboard.writeText(t.value).then(()=>{$('#bk-m').textContent='已複製'},()=>{document.execCommand('copy');$('#bk-m').textContent='已嘗試複製'})}catch(e){try{document.execCommand('copy')}catch(x){}}}
-async function bkImport(){try{const d=JSON.parse($('#bk-t').value);if(d.roles&&d.roles.length&&(!window.AUTH||AUTH.admin)){ROLES=d.roles;await dbPut('roles',ROLES);spawnChars()}if(d.game){GS=Object.assign(GS,d.game);gSave();$('#gst').textContent='★ '+GS.stars}if(d.trip){TRIP=Object.assign(TRIP,d.trip);tpFix();tpSave()}if(d.rto){Object.assign(RTO,d.rto);dbPut('rto',RTO)}
+async function bkImport(){try{const d=JSON.parse($('#bk-t').value);if(d.roles&&d.roles.length&&!window.AUTH){ROLES=d.roles;await dbPut('roles',ROLES);spawnChars()}if(d.game){GS=Object.assign(GS,d.game);gSave();$('#gst').textContent='★ '+GS.stars}if(d.trip){TRIP=Object.assign(TRIP,d.trip);tpFix();tpSave()}if(d.rto){Object.assign(RTO,d.rto);dbPut('rto',RTO)}
  for(const k in (d.ck||{})){const cur=await dbGet(k),seen=new Set(cur.map(e=>e.d+'|'+e.t+'|'+e.who));d.ck[k].forEach(e=>{if(!seen.has(e.d+'|'+e.t+'|'+e.who))cur.push(e)});await dbPut(k,cur);VIS.add(k)}markPins();$('#bk-m').textContent='還原完成'}catch(e){$('#bk-m').textContent='格式不正確，無法還原'}}
-function openCk(i){ckI=i;ckS=5;ckPh=[];$('#ckt0').textContent='📍 打卡：'+P[i][2];$('#ckw').innerHTML=(window.AUTH?AUTH.roles(ROLES):ROLES).map(r=>'<option>'+esc(r.n)+'</option>').join('');$('#ckgm').value='';getGps();$('#ckt').value='';$('#ckp').value='';$('#ckprev').innerHTML='';drawStars();$('#cknote').textContent='儲存狀態：'+storeState()+(DB||canStore?(window.AUTH?'。已登入，內容會自動同步到你的 Google 雲端。':'。照片與評論只存在這台裝置的瀏覽器中。'):'。請先到「設定 → 備份／還原」備份。');$('#ckm').classList.add('open')}
+function openCk(i){ckI=i;ckS=5;ckPh=[];$('#ckt0').textContent='📍 打卡：'+P[i][2];$('#ckw').innerHTML=(window.AUTH?AUTH.roles(ROLES):ROLES).map(r=>'<option>'+esc(r.n)+'</option>').join('');$('#ckgm').value='';getGps();$('#ckt').value='';$('#ckp').value='';$('#ckprev').innerHTML='';drawStars();$('#cknote').textContent='儲存狀態：'+storeState()+(DB||canStore?(window.AUTH?(AUTH.guest?'。訪客模式，內容只存在這台裝置的瀏覽器中。':'。已登入，內容會自動同步到你的 Google 雲端。'):'。照片與評論只存在這台裝置的瀏覽器中。'):'。請先到「設定 → 備份／還原」備份。');$('#ckm').classList.add('open')}
 function closeCk(){$('#ckm').classList.remove('open')}
 const shrink=f=>new Promise(r=>{const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const s=Math.min(1,720/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);r(c.toDataURL('image/jpeg',.8))};im.onerror=()=>r('');im.src=u});
 $('#ckp').addEventListener('change',async e=>{ckPh=[];for(const f of [...e.target.files].slice(0,4))ckPh.push(await shrink(f));$('#ckprev').innerHTML=ckPh.filter(Boolean).map(u=>'<img src="'+u+'" alt="">').join('')});
@@ -552,7 +552,7 @@ function tpCopy(){TRIP.dayOf=TRIP.dayOf||{};const d0=tpD0();let t='';TRIP.order.
 const rdef=i=>({n:'角色'+(i+1),g:'o',st:0,hc:'#2a1d14',sk:'#f1c9a5',sh:'#4f9ad0',pn:'#2f3a4f',hat:'none',hatc:'#c8553d',out:'pants',av:'',bio:'',bioEn:''});
 const RS=[['#f1c9a5','膚色 1'],['#e0ac82','膚色 2'],['#c68863','膚色 3'],['#8d5a3c','膚色 4']];
 const opt=(l,v)=>l.map(a=>'<option value="'+a[0]+'"'+(a[0]==v?' selected':'')+'>'+a[1]+'</option>').join('');
-function openR(){if(window.AUTH&&!AUTH.admin)return;$('#rm').classList.add('open');toggleIndex(false);toggleTime(false);rRender()}
+function openR(){if(window.AUTH){if(AUTH.guest||!AUTH.admin)return;return mOpen()}$('#rm').classList.add('open');toggleIndex(false);toggleTime(false);rRender()}
 function closeR(){$('#rm').classList.remove('open')}
 function rRender(){$('#rbody').innerHTML=ROLES.map((r,i)=>{const av=r.av&&r.av.startsWith('data:')?r.av:(AV[r.av]||'');return '<div class="gc rcard" data-i="'+i+'"><div class="rrow">'+(av?'<img class="rav" src="'+av+'" alt="">':'<span class="rav"></span>')+'<label class="up2">頭像<input type="file" accept="image/*" hidden onchange="rAv(this,'+i+')"></label><button class="gh" onclick="rNoAv('+i+')">移除頭像</button><button class="gh" onclick="rDel('+i+')">刪除</button></div>'+
  '<div class="rrow"><label>名字 <input type="text" class="r-n" maxlength="8" value="'+r.n.replace(/"/g,'&quot;')+'"></label><label>性別 <select class="r-g">'+opt([['m','男'],['f','女'],['o','其他']],r.g)+'</select></label></div>'+
@@ -567,6 +567,82 @@ function rNoAv(i){rRead();ROLES[i].av='';rRender()}
 function rAdd(){rRead();if(ROLES.length<8)ROLES.push(rdef(ROLES.length));rRender()}
 function rDel(i){rRead();ROLES.splice(i,1);rRender()}
 function rSave(){rRead();if(!ROLES.length)ROLES.push(rdef(0));dbPut('roles',ROLES);spawnChars();closeR()}
+
+/* ===== 多人版：成員管理（帳號＋角色合併，只有管理員） ===== */
+let RM=[],RMS=null;
+const MERR={name_taken:'這個名字已被使用（每個名字只能有一位成員）',bad_email:'Email 格式不正確',bad_role:'名字不可空白，也不能含 < > " & \' 等符號',name_locked:'已有帳號的成員，名字不能修改（要換名字請刪除後重建）',last_admin:'至少要保留一位啟用中的管理員',self:'不能刪除自己',bound:'這個角色已綁定帳號，請用「刪除」連帳號一起刪',too_many:'最多 16 位成員',need_role:'至少要保留一個角色',not_found:'找不到這位成員',forbidden:'沒有權限',net:'連線失敗，請稍後再試',auth:'登入已失效，請重新登入'};
+async function mOpen(){
+ $('#rm').classList.add('open');toggleIndex(false);toggleTime(false);
+ const b=document.querySelector('#rm .ghd b');if(b)b.textContent='👥 成員管理';
+ $('#rbody').innerHTML='<p>讀取中…</p>';
+ const x=await AUTH.api('mList');
+ if(!x.ok){$('#rbody').innerHTML='<p>讀取失敗：'+esc(MERR[x.err]||x.err||'')+'</p>';return}
+ mBuild(x.roles,x.members);mRender()
+}
+function mBuild(roles,mem){
+ RMS={roles:roles,members:mem};
+ const base=Array.isArray(roles)?roles:ROLES;
+ RM=base.map(r=>({r:JSON.parse(JSON.stringify(r)),m:mem.find(u=>u.identity===r.n)||null,key:r.n,isNew:false}));
+ mem.forEach(u=>{if(!RM.some(c=>c.m&&c.m.email===u.email)){const d=rdef(RM.length);d.n=String(u.identity).slice(0,8);RM.push({r:d,m:u,key:u.identity,isNew:false})}})
+}
+function mApp(r,i,lock){
+ const av=r.av&&r.av.startsWith('data:')?r.av:(AV[r.av]||''),q=s=>String(s||'').replace(/"/g,'&quot;');
+ return '<div class="rrow">'+(av?'<img class="rav" src="'+av+'" alt="">':'<span class="rav"></span>')+'<label class="up2">頭像<input type="file" accept="image/*" hidden onchange="mAv(this,'+i+')"></label><button class="gh" onclick="mNoAv('+i+')">移除頭像</button></div>'+
+ '<div class="rrow"><label>名字 <input type="text" class="r-n" maxlength="8" value="'+q(r.n)+'"'+(lock?' readonly':'')+'></label><label>性別 <select class="r-g">'+opt([['m','男'],['f','女'],['o','其他']],r.g)+'</select></label></div>'+
+ '<div class="rrow"><label>髮型 <select class="r-st">'+opt([[0,'短髮'],[1,'長髮'],[2,'包包頭'],[3,'馬尾']],r.st)+'</select></label><label>髮色 <input type="color" class="r-hc" value="'+r.hc+'"></label><label>膚色 <select class="r-sk">'+opt(RS,r.sk)+'</select></label></div>'+
+ '<div class="rrow"><label>服裝 <select class="r-out">'+opt([['pants','褲子'],['skirt','短裙'],['dress','洋裝']],r.out)+'</select></label><label>上衣 <input type="color" class="r-sh" value="'+r.sh+'"></label><label>下身 <input type="color" class="r-pn" value="'+r.pn+'"></label></div>'+
+ '<div class="rrow"><label>帽子 <select class="r-hat">'+opt([['none','無'],['cap','鴨舌帽'],['dome','圓頂帽'],['straw','草帽'],['beanie','毛帽'],['bucket','漁夫帽']],r.hat)+'</select></label><label>帽色 <input type="color" class="r-hatc" value="'+r.hatc+'"></label></div>'+
+ '<div class="rrow"><label>介紹 <input type="text" class="r-bio" maxlength="40" style="max-width:220px" value="'+q(r.bio)+'"></label></div><div class="rrow"><label>English intro（語音用） <input type="text" class="r-bioen" maxlength="90" style="max-width:240px" value="'+q(r.bioEn)+'"></label></div>'
+}
+function mCard(c,i,me){
+ const m=c.m,self=m&&m.email===me,dis=self?' disabled':'';
+ const head=m?'<div class="rrow"><b>'+(m.role==='admin'?'👑 ':'')+esc(m.email)+'</b></div><div class="rrow"><small>'+(m.status==='disabled'?'已停用　':'')+(m.loggedIn?'最近登入 '+esc(m.lastLogin||'—'):'尚未登入')+'</small></div>':
+  '<div class="rrow"><small>'+(c.isNew?'新成員':'待綁定：目前只有角色，沒有帳號')+'</small></div><div class="rrow"><label>Google Email <input type="email" class="r-em" style="max-width:230px" placeholder="留空＝只有角色，沒有帳號"></label></div>';
+ const acct='<div class="rrow"><label>權限 <select class="r-perm"'+dis+'>'+opt([['user','一般使用者'],['admin','管理員']],m?m.role:'user')+'</select></label><label>狀態 <select class="r-status"'+dis+'>'+opt([['active','啟用'],['disabled','停用']],m?m.status:'active')+'</select></label></div>';
+ return '<div class="gc rcard" data-i="'+i+'">'+head+acct+mApp(c.r,i,!!m)+'<div class="rrow"><button class="ckb" onclick="mSaveCard('+i+')">儲存這位成員</button>'+(self?'':'<button class="gh" onclick="mDelCard('+i+')">刪除</button>')+'<small class="rmsg"></small></div></div>'
+}
+function mRender(){
+ const me=AUTH.me.email;
+ $('#rbody').innerHTML='<small>一位成員＝一個 Google 帳號＋一個角色（名字、外觀、頭像）。Email 留空代表「只有角色、沒有帳號」，之後填上 Email 就會綁定。已有帳號的成員，名字不能修改。</small>'+RM.map((c,i)=>mCard(c,i,me)).join('')+'<div class="row2"><button class="gh" style="flex:1" onclick="mAdd()">＋ 新增成員</button></div><small>最多 16 位成員，名字最多 8 個字。每位成員各按自己的「儲存」；其他人重新整理頁面後才會看到變更。</small>'
+}
+function mRead(i){
+ const c=RM[i],card=document.querySelector('#rbody .rcard[data-i="'+i+'"]');if(!c||!card)return;
+ const r=c.r,q=k=>card.querySelector('.r-'+k);
+ r.n=(q('n').value||'角色').trim().slice(0,8);r.g=q('g').value;r.st=+q('st').value;r.hc=q('hc').value;r.sk=q('sk').value;r.out=q('out').value;r.sh=q('sh').value;r.pn=q('pn').value;r.hat=q('hat').value;r.bio=q('bio').value;r.bioEn=q('bioen').value;r.hatc=q('hatc').value;
+ const em=q('em');if(em)c.em=em.value.trim();
+ const pm=q('perm'),st=q('status');if(pm)c.perm=pm.value;if(st)c.status=st.value
+}
+function mReadAll(){RM.forEach((c,i)=>mRead(i))}
+function mAv(el,i){mReadAll();if(el.files[0])circ(el.files[0]).then(u=>{if(u)RM[i].r.av=u;mRender()})}
+function mNoAv(i){mReadAll();RM[i].r.av='';mRender()}
+function mAdd(){mReadAll();if(RM.length>=16){alert('最多 16 位成員');return}RM.push({r:rdef(RM.length),m:null,key:'',isNew:true});mRender()}
+function mMsg(i,t){const e=document.querySelector('#rbody .rcard[data-i="'+i+'"] .rmsg');if(e)e.textContent=t}
+async function mSaveCard(i){
+ mReadAll();const c=RM[i];mMsg(i,'儲存中…');
+ const body={email:c.m?c.m.email:(c.em||''),key:c.m?c.m.email:c.key,perm:c.perm||(c.m?c.m.role:'user'),status:c.status||(c.m?c.m.status:'active'),role:c.r};
+ if(!Array.isArray(RMS.roles))body.seed=ROLES;
+ const x=await AUTH.api('mSave',body);
+ if(!x.ok){mMsg(i,'失敗：'+(MERR[x.err]||x.err));return}
+ ROLES=x.roles;dbPut('roles',ROLES);spawnChars();
+ RMS={roles:x.roles,members:x.members};
+ c.m=x.members.find(u=>u.identity===c.r.n)||null;c.key=c.r.n;c.isNew=false;c.em='';
+ RM.forEach(o=>{if(o!==c&&o.m){const f=x.members.find(u=>u.email===o.m.email);if(f)o.m=f}});
+ mRender();mMsg(i,'已儲存')
+}
+async function mDelCard(i){
+ mReadAll();const c=RM[i];
+ if(c.isNew){RM.splice(i,1);mRender();return}
+ if(!c.m&&!Array.isArray(RMS.roles)){
+  if(RM.length<=1)return;if(!confirm('刪除角色「'+c.r.n+'」？'))return;
+  RM.splice(i,1);ROLES=ROLES.filter(r=>r.n!==c.r.n);dbPut('roles',ROLES);spawnChars();mRender();return}
+ if(!confirm(c.m?'刪除成員「'+c.r.n+'」（'+c.m.email+'）？\n帳號會一併刪除，他的雲端資料夾會丟進 Google 雲端硬碟垃圾桶。':'刪除角色「'+c.r.n+'」？'))return;
+ mMsg(i,'刪除中…');
+ const x=await AUTH.api('mDel',{email:c.m?c.m.email:'',name:c.key,purge:!!c.m});
+ if(!x.ok){mMsg(i,'失敗：'+(MERR[x.err]||x.err));return}
+ if(Array.isArray(x.roles))ROLES=x.roles;else ROLES=ROLES.filter(r=>r.n!==c.r.n);
+ dbPut('roles',ROLES);spawnChars();RMS={roles:x.roles,members:x.members};
+ RM.splice(i,1);RM.forEach(o=>{if(o.m){const f=x.members.find(u=>u.email===o.m.email);if(f)o.m=f}});mRender()
+}
 // ===== sound =====
 const SND={on:false,amb:true,voc:true,vol:.6,ctx:null,m:null,mus:null,eb:null,lay:{},nb:null,city:'_',duck:0,sg:null,gv:''};
 const AMB={p:{crowd:.04,water:.03,wind:.01,bell:330,tram:1,hoof:0,bird:1,cow:0},v:{crowd:.035,water:0,wind:.02,bell:262,tram:1,hoof:1,bird:1.2,cow:0},b:{crowd:.04,water:.05,wind:.015,bell:392,tram:1,hoof:0,bird:.8,cow:0},k:{crowd:.025,water:.05,wind:.04,bell:294,tram:0,hoof:0,bird:1.2,cow:1},c:{crowd:.03,water:.05,wind:.02,bell:349,tram:0,hoof:0,bird:1.1,cow:0},_:{crowd:.015,water:.01,wind:.07,bell:330,tram:0,hoof:0,bird:1,cow:1}};

@@ -7,7 +7,7 @@
   const C = window.CFG || {};
   if (!(C.AUTH && C.CLIENT_ID && C.API)) return;
 
-  const A = window.AUTH = { on: true, me: null, admin: false, ns: '', tok: null, ready: null, state: 'idle', last: 0 };
+  const A = window.AUTH = { on: true, me: null, admin: false, guest: false, ns: '', tok: null, ready: null, state: 'idle', last: 0 };
   const SK = 'eu_sess';
   const $ = s => document.querySelector(s);
   const E = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -31,8 +31,11 @@
   /* ---------- 登入閘門 ---------- */
   const gate = document.createElement('div');
   gate.className = 'ckm open'; gate.id = 'authgate'; gate.style.zIndex = 99;
-  gate.innerHTML = '<div class="ckcard gcard" style="text-align:center"><h2 style="margin:4px 0 8px">奧・捷・斯・匈旅遊城</h2><p id="ag-m" style="margin:6px 0 12px">請用 Google 帳號登入</p><div id="ag-b" style="display:flex;justify-content:center;min-height:44px"></div></div>';
+  gate.innerHTML = '<div class="ckcard gcard" style="text-align:center"><h2 style="margin:4px 0 8px">奧・捷・斯・匈旅遊城</h2><p id="ag-m" style="margin:6px 0 12px">請用 Google 帳號登入</p><div id="ag-b" style="display:flex;justify-content:center;min-height:44px"></div><div id="ag-gw"><button class="gh" id="ag-g" style="margin-top:14px;flex:none">以訪客身分使用（不登入）</button><div class="ckm2" style="margin-top:6px">訪客的內容只存在這台裝置，不會同步，也看不到成員資料。</div></div></div>';
   document.body.appendChild(gate);
+  const gw = $('#ag-gw');
+  if (C.GUEST === false && gw) gw.style.display = 'none';
+  else if ($('#ag-g')) $('#ag-g').onclick = () => enterGuest();
   const say = m => { $('#ag-m').textContent = m; };
 
   function loadGsi() {
@@ -63,21 +66,32 @@
     say('驗證中…');
     const x = await api('login', { idToken: r.credential });
     if (!x.ok) { showGate((ERR[x.err] || ERR.server)(x)); return; }
-    A.tok = x.tok;
+    A.tok = x.tok; A.guest = false;
+    try { localStorage.removeItem('eu_guest'); } catch (e) {}
     js(SK, { tok: x.tok, exp: x.exp, me: x.me });
     finish(x.me);
   }
   function signOut(silent) {
-    try { localStorage.removeItem(SK); } catch (e) {}
+    try { localStorage.removeItem(SK); if (!silent) localStorage.removeItem('eu_guest'); } catch (e) {}
     try { if (window.google && google.accounts) google.accounts.id.disableAutoSelect(); } catch (e) {}
     if (silent) { A.tok = null; showGate('登入已失效，請重新登入。'); } else location.reload();
   }
   A.signOut = () => signOut(false);
 
+  const guestMe = () => ({ email: '', name: '訪客', identity: '訪客', role: 'guest', uid: 'guest' });
+  function enterGuest() {
+    if (C.GUEST === false) return;
+    js('eu_guest', 1); A.guest = true; finish(guestMe());
+  }
+  A.enterGuest = enterGuest;
+
   let resolveReady;
   A.ready = new Promise(r => { resolveReady = r; });
   function finish(me) {
     A.me = me; A.admin = me.role === 'admin'; A.ns = '@' + me.uid;
+    if (A.guest) {                                   // 訪客：完全在本機運作，不呼叫後端
+      gate.classList.remove('open'); installUI(); setSt('guest'); resolveReady(); return;
+    }
     meta = jl('eu_meta' + A.ns, {}); dirty = new Set(jl('eu_dirty' + A.ns, [])); upl = new Set(jl('eu_upl' + A.ns, []));
     gate.classList.remove('open'); installUI(); setSt(dirty.size ? 'wait' : 'idle');
     resolveReady();
@@ -85,6 +99,7 @@
     if (dirty.size) sched(3000);
   }
   (async () => {
+    await null;                                      // 等整個檔案跑完（下方的徽章、介面函式都已建立）再開始
     const s = jl(SK, null);
     if (s && s.tok && s.exp > Date.now()) {
       A.tok = s.tok;
@@ -92,6 +107,7 @@
       if (x.ok) { js(SK, Object.assign(s, { me: x.me })); return finish(x.me); }
       if (x.err === 'net' && s.me) return finish(s.me);        // 離線：用上次登入的身分與本機資料
     }
+    if (C.GUEST !== false && jl('eu_guest', 0)) { A.guest = true; return finish(guestMe()); }
     showGate();
   })();
 
@@ -170,12 +186,19 @@
       meta[k] = Math.max(meta[k] || 0, r.ts || 0);
       return m.out.length > (Array.isArray(rv) ? rv.length : 0);
     }
+    if (k === 'roles') {                         // 角色以伺服器為準：本機有不同內容一律換成伺服器版
+      const loc = await dbGet(k);
+      if (JSON.stringify(loc) !== JSON.stringify(rv)) { quiet = true; try { await dbPut(k, rv); } finally { quiet = false; } }
+      meta[k] = r.ts || 0;
+      return false;
+    }
     const lts = meta[k] || 0;
     if ((r.ts || 0) > lts) { quiet = true; try { await dbPut(k, rv); } finally { quiet = false; } meta[k] = r.ts; return false; }
     return lts > (r.ts || 0);
   }
 
   A.pull = async function () {
+    if (A.guest) return;
     setSt('sync');
     const r = await api('pull');
     if (!r.ok) { setSt(r.err === 'net' ? 'off' : 'err'); return; }
@@ -186,8 +209,8 @@
   };
 
   A.onPut = function (k, v) {
-    if (quiet) return;
-    if (k === 'roles' && !A.admin) return;     // 角色設定只有管理員能改
+    if (quiet || A.guest) return;
+    if (k === 'roles') return;                 // 角色只能透過成員管理（伺服器）修改，不由用戶端寫入
     meta[k] = Date.now(); dirty.add(k); saveMeta(); setSt('wait'); sched(1500);
   };
 
@@ -216,10 +239,11 @@
       retry = Math.min(retry + 1, 5); sched(15000 * retry);
     } finally { busy = false; }
   }
-  A.syncNow = async () => { await A.pull(); await flush(); };
+  A.syncNow = async () => { if (A.guest) return; await A.pull(); await flush(); };
 
   /* ---------- app.js 要用的小工具 ---------- */
-  A.roles = list => {                          // 每個登入者只能用「自己的那一個身分」打卡
+  A.roles = list => {                          // 每個登入者只能用「自己的那一個身分」打卡；訪客固定是「訪客」
+    if (A.guest) return [{ n: '訪客' }];
     const mine = (list || []).filter(r => r.n === A.me.identity);
     return mine.length ? mine : [{ n: A.me.identity }];
   };
@@ -228,7 +252,7 @@
   const badge = document.createElement('div');
   badge.id = 'syncb';
   document.body.appendChild(badge);
-  const ST = { idle: '☁️ 已同步', wait: '☁️ 待同步', sync: '🔄 同步中…', off: '📴 離線，稍後重試', err: '⚠️ 同步失敗，稍後重試' };
+  const ST = { guest: '👤 訪客・僅存本機', idle: '☁️ 已同步', wait: '☁️ 待同步', sync: '🔄 同步中…', off: '📴 離線，稍後重試', err: '⚠️ 同步失敗，稍後重試' };
   function setSt(s) { A.state = s; badge.textContent = ST[s] || ''; badge.className = s; }
   badge.onclick = () => openAcct();
 
@@ -248,15 +272,19 @@
       const b1 = document.createElement('button'); b1.className = 'sb'; b1.id = 'm-acct'; b1.textContent = '👤 帳號與同步';
       b1.onclick = () => { openAcct(); if (window.subm) subm(); };
       sec.insertBefore(b1, anchor);
-      if (A.admin) {
-        const b2 = document.createElement('button'); b2.className = 'sb'; b2.id = 'm-adm'; b2.textContent = '🔐 帳號管理';
-        b2.onclick = () => { openAdm(); if (window.subm) subm(); };
-        sec.insertBefore(b2, anchor);
-      } else anchor.style.display = 'none';
+      if (A.admin) anchor.textContent = '👥 成員管理'; else anchor.style.display = 'none';
     }
   }
   function openAcct() {
     if (!A.me) return;
+    if (A.guest) {
+      const g = modal('acctm', '👤 訪客模式',
+        '<p><b>訪客</b></p><p>訪客模式：內容只存在這台裝置的瀏覽器，不會同步到雲端；打卡的身分固定是「訪客」，也看不到成員資料。</p>' +
+        '<p><small>想跨裝置同步、使用自己的角色，請改用管理員加入的 Google 帳號登入。</small></p>' +
+        '<div class="row2"><button class="ckb" id="acct-gl">改用 Google 登入</button></div>');
+      g.querySelector('#acct-gl').onclick = () => A.signOut();
+      return;
+    }
     const m = modal('acctm', '👤 帳號與同步',
       '<p><b>' + E(A.me.name || A.me.email) + '</b><br><small>' + E(A.me.email) + '</small></p>' +
       '<p>身分：<b>' + E(A.me.identity) + '</b>　權限：' + (A.admin ? '管理員' : '一般使用者') + '</p>' +
@@ -269,46 +297,4 @@
     m.querySelector('#acct-out').onclick = () => { if (confirm('登出後需重新登入才能使用。確定登出？')) A.signOut(); };
   }
 
-  /* 管理員：帳號管理 */
-  let users = [];
-  const idNames = () => { try { return ROLES.map(r => r.n); } catch (e) { return []; } };
-  async function openAdm() {
-    const m = modal('admm', '🔐 帳號管理', '<p>讀取中…</p>');
-    const r = await api('uList');
-    if (!r.ok) { m.querySelector('.mb').innerHTML = '<p>讀取失敗：' + E(r.err) + '</p>'; return; }
-    users = r.users; drawAdm(m);
-  }
-  function idSelect(cur, name) {
-    const names = idNames(); if (cur && names.indexOf(cur) < 0) names.push(cur);
-    return '<select data-f="' + name + '">' + names.map(n => '<option' + (n === cur ? ' selected' : '') + '>' + E(n) + '</option>').join('') + '</select>';
-  }
-  function row(u, isNew) {
-    const lab = isNew ? '＋ 新增使用者' : E(u.name || u.email) + (u.status === 'disabled' ? '（已停用）' : '');
-    return '<div class="ckc" data-e="' + E(u.email) + '"><div class="ckm2"><b>' + lab + '</b>' + (isNew ? '' : '<br>' + E(u.email) + (u.lastLogin ? '　最近登入 ' + E(String(u.lastLogin).slice(0, 24)) : '　尚未登入')) + '</div>' +
-      (isNew ? '<input data-f="email" placeholder="Google Email" style="width:100%;margin:4px 0">' : '') +
-      '<input data-f="name" placeholder="顯示名稱" value="' + E(u.name) + '" style="width:100%;margin:4px 0">' +
-      '<div class="plr"><span>身分</span>' + idSelect(u.identity, 'identity') + '</div>' +
-      '<div class="plr"><span>權限</span><select data-f="role"><option value="user"' + (u.role === 'user' ? ' selected' : '') + '>一般使用者</option><option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>管理員</option></select></div>' +
-      '<div class="plr"><span>狀態</span><select data-f="status"><option value="active"' + (u.status !== 'disabled' ? ' selected' : '') + '>啟用</option><option value="disabled"' + (u.status === 'disabled' ? ' selected' : '') + '>停用</option></select></div>' +
-      '<div class="row2"><button class="ckb" data-do="save">儲存</button>' + (isNew ? '' : '<button class="gh" data-do="del">刪除</button>') + '</div></div>';
-  }
-  function drawAdm(m) {
-    const first = idNames()[0] || '';
-    m.querySelector('.mb').innerHTML = '<p><small>每個帳號只綁定一個身分，且同一個身分同時只能給一個啟用中的帳號。停用或刪除後，對方下一次操作就會被登出。</small></p><div id="adm-msg" class="ckm2"></div>' +
-      users.map(u => row(u, false)).join('') + row({ email: '', name: '', identity: first, role: 'user', status: 'active' }, true);
-    m.onclick = async ev => {
-      const b = ev.target.closest('[data-do]'); if (!b) return;
-      const card = b.closest('[data-e]'), f = n => { const x = card.querySelector('[data-f="' + n + '"]'); return x ? x.value.trim() : ''; };
-      const email = card.dataset.e || f('email'), msg = m.querySelector('#adm-msg');
-      const E2 = { identity_taken: '這個身分已被另一個啟用中的帳號使用', bad_email: 'Email 格式不正確', bad_identity: '請選擇身分', last_admin: '至少要保留一位啟用中的管理員', self: '不能刪除自己', forbidden: '沒有權限' };
-      let r;
-      if (b.dataset.do === 'save') r = await api('uSave', { email: email, name: f('name'), identity: f('identity'), role: f('role'), status: f('status') });
-      else {
-        const purge = confirm('刪除 ' + email + '？\n按「確定」連同他的雲端資料夾一併丟進 Google 雲端硬碟垃圾桶；按「取消」放棄。');
-        if (!purge) return; r = await api('uDel', { email: email, purge: true });
-      }
-      if (r.ok) { users = r.users; drawAdm(m); m.querySelector('#adm-msg').textContent = '已儲存'; }
-      else msg.textContent = '失敗：' + (E2[r.err] || r.err);
-    };
-  }
 })();
