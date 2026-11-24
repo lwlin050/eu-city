@@ -16,13 +16,20 @@
 
   /* ---------- API ---------- */
   async function api(a, body, ms) {
+    if (A.guest) return { ok: false, err: 'guest' };                 // 訪客不碰後端
+    if (a !== 'login' && !A.tok) return { ok: false, err: 'auth' };   // 沒有憑證就不送出，也不觸發登出
+    const tok0 = A.tok;
     const ctl = typeof AbortController === 'function' ? new AbortController() : null;
     const t = ctl && setTimeout(() => ctl.abort(), ms || 60000);
     try {
       // 不加自訂標頭 → 屬於「簡單請求」，不會觸發 CORS 預檢（Apps Script 不支援預檢）
       const r = await fetch(C.API, { method: 'POST', body: JSON.stringify(Object.assign({ a: a, tok: A.tok }, body || {})), signal: ctl ? ctl.signal : undefined });
       const x = await r.json();
-      if (x && x.err === 'auth' && a !== 'login') signOut(true);
+      if (x && x.err === 'auth' && a !== 'login' && tok0 && A.tok === tok0) {
+        A.why = a + (x.why ? '：' + x.why : '');
+        try { console.warn('[auth] 伺服器拒絕憑證', a, x.why || ''); } catch (e) {}
+        signOut(true, '登入已失效，請重新登入。（' + A.why + '）');
+      }
       return x;
     } catch (e) { return { ok: false, err: 'net' }; } finally { if (t) clearTimeout(t); }
   }
@@ -71,10 +78,11 @@
     js(SK, { tok: x.tok, exp: x.exp, me: x.me });
     finish(x.me);
   }
-  function signOut(silent) {
+  function signOut(silent, msg) {
+    clearTimeout(timer);
     try { localStorage.removeItem(SK); if (!silent) localStorage.removeItem('eu_guest'); } catch (e) {}
     try { if (window.google && google.accounts) google.accounts.id.disableAutoSelect(); } catch (e) {}
-    if (silent) { A.tok = null; showGate('登入已失效，請重新登入。'); } else location.reload();
+    if (silent) { A.tok = null; showGate(msg || '登入已失效，請重新登入。'); } else location.reload();
   }
   A.signOut = () => signOut(false);
 
@@ -90,6 +98,7 @@
   function finish(me) {
     A.me = me; A.admin = me.role === 'admin'; A.ns = '@' + me.uid;
     if (A.guest) {                                   // 訪客：完全在本機運作，不呼叫後端
+      clearTimeout(timer); A.tok = null;
       gate.classList.remove('open'); installUI(); setSt('guest'); resolveReady(); return;
     }
     meta = jl('eu_meta' + A.ns, {}); dirty = new Set(jl('eu_dirty' + A.ns, [])); upl = new Set(jl('eu_upl' + A.ns, []));
@@ -214,8 +223,9 @@
     meta[k] = Date.now(); dirty.add(k); saveMeta(); setSt('wait'); sched(1500);
   };
 
-  function sched(ms) { clearTimeout(timer); timer = setTimeout(flush, ms); }
+  function sched(ms) { clearTimeout(timer); if (A.guest || !A.tok) return; timer = setTimeout(flush, ms); }
   async function flush() {
+    if (A.guest || !A.tok) return;
     if (busy) return sched(1500);
     if (!dirty.size) return setSt('idle');
     busy = true; setSt('sync');
@@ -266,14 +276,17 @@
     m.querySelector('b').textContent = title; m.querySelector('.mb').innerHTML = body; m.classList.add('open');
     return m;
   }
-  function installUI() {
+  function installUI() {                         // 可重複呼叫：已經有的按鈕不會再加
     const anchor = $('#m-role'), sec = anchor && anchor.parentNode;
-    if (sec) {
-      const b1 = document.createElement('button'); b1.className = 'sb'; b1.id = 'm-acct'; b1.textContent = '👤 帳號與同步';
+    if (!sec) return;
+    let b1 = document.getElementById('m-acct');
+    if (!b1) {
+      b1 = document.createElement('button'); b1.className = 'sb'; b1.id = 'm-acct'; b1.textContent = '👤 帳號與同步';
       b1.onclick = () => { openAcct(); if (window.subm) subm(); };
       sec.insertBefore(b1, anchor);
-      if (A.admin) anchor.textContent = '👥 成員管理'; else anchor.style.display = 'none';
     }
+    if (A.admin) { anchor.style.display = ''; anchor.textContent = '👥 成員管理'; }
+    else anchor.style.display = 'none';
   }
   function openAcct() {
     if (!A.me) return;
