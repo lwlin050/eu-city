@@ -50,7 +50,7 @@
     return new Promise((res, rej) => {
       if (window.google && google.accounts && google.accounts.id) return res();
       const s = document.createElement('script');
-      s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = res; s.onerror = rej;
+      s.src = 'https://accounts.google.com/gsi/client?hl='+({zh:'zh-TW',en:'en',ja:'ja'})[window.I18N?I18N.lang:'zh']; s.async = true; s.onload = res; s.onerror = rej;
       document.head.appendChild(s);
     });
   }
@@ -60,7 +60,7 @@
     $('#ag-b').innerHTML = '';
     loadGsi().then(() => {
       google.accounts.id.initialize({ client_id: C.CLIENT_ID, callback: onCred, auto_select: false });
-      google.accounts.id.renderButton($('#ag-b'), { theme: 'outline', size: 'large', shape: 'pill', locale: 'zh-TW', text: 'signin_with', width: 260 });
+      google.accounts.id.renderButton($('#ag-b'), { theme: 'outline', size: 'large', shape: 'pill', locale: ({zh:'zh-TW',en:'en',ja:'ja'})[window.I18N?I18N.lang:'zh']||'zh-TW', text: 'signin_with', width: 260 });
     }).catch(() => say('無法載入 Google 登入，請檢查網路，或關閉會擋 accounts.google.com 的外掛後重新整理'));
   }
   const ERR = {
