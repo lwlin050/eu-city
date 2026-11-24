@@ -1,4 +1,6 @@
 // ---- UI ----
+const TT=s=>window.T?window.T(s):s;
+const CEN=c=>window.I18N&&I18N.lang==='en'?'':c.en;
 const $=s=>document.querySelector(s), cm=Object.fromEntries(CT.map(c=>[c.id,c]));
 let flt='all',fc=null,pins=[];
 const mapUrl=p=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p[2]+' '+cm[p[0]].en);
@@ -21,7 +23,7 @@ function rcard(r){return '<div class="gc"><div class="gh2"><b>🚆 '+r.n+'</b><b
 const cityRoutes=id=>opsH()+R.filter(r=>r.a===id||r.b===id).map(rcard).join('')+'<small>時刻與價格請以各營運商官方網站為準。</small>';
 function listRoutes(){panel('<h2>🚆 城際火車</h2><div class="sub">RegioJet、ÖBB、ČD、MÁV、ZSSK</div>'+opsH()+R.map(rcard).join('')+'<small>時刻與價格請以各營運商官方網站為準。</small>')}
 function listCity(id){const c=cm[id],l=srt(P.map((p,i)=>[p,i]).filter(a=>a[0][0]===id&&(flt==='all'||a[0][1]===flt)));
- panel('<h2>'+c.n+' <small style="font-weight:400;font-size:14px;color:var(--mut)">'+c.en+'</small></h2><div class="sub">'+c.cc+'</div><div class="d">'+c.d+'</div>'+sortBar()+(l.length?l.map(itm).join(''):'<p class="d">這個分類目前沒有項目。</p>')+(flt==='w'?'<div class="gc">'+WCG[id]+'</div>':'')+(flt==='x'?'<div class="ih" style="margin-top:14px">🚆 城際火車（RegioJet、ÖBB 等）</div>'+cityRoutes(id):''));listMode=true}
+ panel('<h2>'+c.n+' <small style="font-weight:400;font-size:14px;color:var(--mut)">'+CEN(c)+'</small></h2><div class="sub">'+c.cc+'</div><div class="d">'+c.d+'</div>'+sortBar()+(l.length?l.map(itm).join(''):'<p class="d">這個分類目前沒有項目。</p>')+(flt==='w'?'<div class="gc">'+WCG[id]+'</div>':'')+(flt==='x'?'<div class="ih" style="margin-top:14px">🚆 城際火車（RegioJet、ÖBB 等）</div>'+cityRoutes(id):''));listMode=true}
 function goCity(id){fc=id;chips();ambFor(id);if(id){const c=cm[id];ttg.set(c.x,0,c.z);tds=10.5;tph=.8;listCity(id)}else{ttg.set(4,0,-12);tds=92;tph=.95;closeP()}}
 let sel=-1;
 function goEvent(id){const E=EVT[id];fc=id;chips();ttg.set(E.x,0,E.z);tds=12;tph=.85;ambFor(id+':ev');panel('<h2>'+E.ico+' '+E.n+'</h2><div class="sub">'+cm[id].cc+' '+cm[id].n+' 近郊</div><div class="d">'+E.d+'</div>'+kv([['背景音樂',E.m],['說明','示意的活動場景，不是真實的節目時間表']])+'<button class="ckb" onclick="goCity(\''+id+'\')">回到'+cm[id].n+'</button>')}
@@ -285,7 +287,7 @@ CT.forEach((c,k)=>{const g=new THREE.Group();g.position.set(c.x,0,c.z);g.userDat
   const hd=new THREE.Mesh(new THREE.SphereGeometry(.6,8,6),new THREE.MeshBasicMaterial({visible:false}));hd.position.y=.9;hd.userData.i=i;hd.add(model(p,i,c));pg.add(hd);g.add(pg);hits.push(hd);
   const l=document.createElement('div');l.className='lb pl';l.textContent=p[3]+' '+p[2];$('#labels').appendChild(l);
   pins.push({p,g:pg,hd,l,i})});
- const l=document.createElement('div');l.className='lb cl';l.innerHTML=c.n+'<small>'+c.en+'</small>';$('#labels').appendChild(l);c.l=l});
+ const l=document.createElement('div');l.className='lb cl';l.innerHTML=c.n+'<small>'+CEN(c)+'</small>';$('#labels').appendChild(l);c.l=l});
 const live=[];
 isl.forEach((g,k)=>{let s=k*13+5;const rn=()=>(s=(s*9301+49297)%233280)/233280;
  const rg=new THREE.Mesh(new THREE.RingGeometry(.001,.002,3),new THREE.MeshToonMaterial({color:0xe8d3a0,gradientMap:gm}));rg.rotation.x=-Math.PI/2;rg.position.y=.47;g.add(rg);
@@ -422,7 +424,7 @@ function applyTime(h){let i=0;while(i<PAL.length-2&&h>=PAL[i+1][0])i++;const A=P
 function toggleTime(v){const e=$('#timebox'),on=v===undefined?!e.classList.contains('open'):v;e.classList.toggle('open',on);$('#m-time').classList.toggle('on',on)}
 function togglePause(){paused=!paused;$('#m-pause').classList.toggle('on',paused);$('#m-pause').textContent=paused?'▶ 播放':'⏸ 暫停'}
 function toggleBird(){bird=!bird;$('#m-bird').classList.toggle('on',bird);tph=bird?.12:(fc?.8:.95)}
-function renderIndex(){const q=($('#q').value||'').trim().toLowerCase();let h=sortBar();CT.forEach(c=>{const l=srt(P.map((p,i)=>[p,i]).filter(a=>a[0][0]===c.id&&(!q||(a[0][2]+TY[a[0][1]][0]).toLowerCase().includes(q))));if(l.length)h+='<div class="ih">'+c.cc+' '+c.n+'<small>'+l.length+'</small></div>'+l.map(itm).join('')});$('#ilist').innerHTML=h}
+function renderIndex(){const q=($('#q').value||'').trim().toLowerCase();let h=sortBar();CT.forEach(c=>{const l=srt(P.map((p,i)=>[p,i]).filter(a=>a[0][0]===c.id&&(!q||(a[0][2]+TY[a[0][1]][0]+TT(a[0][2])+TT(TY[a[0][1]][0])).toLowerCase().includes(q))));if(l.length)h+='<div class="ih">'+c.cc+' '+c.n+'<small>'+l.length+'</small></div>'+l.map(itm).join('')});$('#ilist').innerHTML=h}
 function toggleIndex(v){const e=$('#index'),on=v===undefined?!e.classList.contains('open'):v;e.classList.toggle('open',on);$('#m-list').classList.toggle('on',on);if(on){renderIndex();toggleTime(false)}}
 function togglePan(){panMode=!panMode;$('#m-pan').classList.toggle('on',panMode)}
 function centerView(){let w=null;if(sel>=0){const po=pins.find(o=>o.i===sel);if(po){w=new THREE.Vector3();po.hd.getWorldPosition(w)}}if(w)ttg.set(w.x,0,w.z);else if(fc){const c=cm[fc];ttg.set(c.x,0,c.z)}else ttg.set(9,0,-12)}
@@ -435,7 +437,7 @@ const dbGet=k=>new Promise(r=>{const fb=()=>r(MEM[k]||LS.g(k)||[]);if(!DB)return
 const dbPut=(k,v)=>{MEM[k]=v;if(window.AUTH)AUTH.onPut(k,v);return new Promise(r=>{if(!DB){LS.s(k,v);return r()}try{const q=DB.transaction('ck','readwrite').objectStore('ck').put(v,k);q.onsuccess=q.onerror=()=>r()}catch(e){LS.s(k,v);r()}})};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function renderCk(i){const el=$('#ck');if(!el)return;const l=await dbGet(vk(i));
- el.innerHTML='<div class="ckh"><b>📍 打卡紀錄</b><small>'+(l.length?'已打卡 '+l.length+' 次':'尚未打卡')+'</small></div>'+l.map(r=>'<div class="ckc"><div class="ckm2"><span class="star">'+'★'.repeat(r.s||0)+'</span> <span>'+r.d+(r.who?' · '+esc(r.who):'')+'</span></div>'+gpsH(r)+(r.t?'<p>'+esc(r.t)+'</p>':'')+(r.ph&&r.ph.length?'<div class="ckp">'+r.ph.filter(Boolean).map(u=>'<img src="'+u+'" alt="">').join('')+'</div>':'')+'</div>').join('')}
+ el.innerHTML='<div class="ckh"><b>📍 打卡紀錄</b><small>'+(l.length?'已打卡 '+l.length+' 次':'尚未打卡')+'</small></div>'+l.map(r=>'<div class="ckc"><div class="ckm2"><span class="star">'+'★'.repeat(r.s||0)+'</span> <span translate="no">'+r.d+(r.who?' · '+esc(r.who):'')+'</span></div>'+gpsH(r)+(r.t?'<p translate="no">'+esc(r.t)+'</p>':'')+(r.ph&&r.ph.length?'<div class="ckp">'+r.ph.filter(Boolean).map(u=>'<img src="'+u+'" alt="">').join('')+'</div>':'')+'</div>').join('')}
 let ckI=-1,ckS=5,ckPh=[];
 function drawStars(){$('#stars').innerHTML=[1,2,3,4,5].map(n=>'<span class="'+(n<=ckS?'on':'')+'" onclick="ckS='+n+';drawStars()">★</span>').join('')}
 let ckGps=null,ckGerr='';
@@ -486,7 +488,7 @@ const QZ=[['天文鐘位於布拉格的哪座廣場？','舊城廣場',['瓦茨�
 let qs=null;
 function gQuiz(){if(!qs)qs={l:shuf(QZ).slice(0,3),i:0,s:0};const q=qs;if(q.i>=q.l.length){$('#gbody').innerHTML='<div class="gc big">答對 '+q.s+' / '+q.l.length+' 題'+(q.s===3?' 🎉':'')+'</div><button class="ckb" onclick="qs=null;gQuiz()">再玩一次</button>';return}
  const c=q.l[q.i];q.o=shuf(c[2]);$('#gbody').innerHTML='<div class="gc"><small>第 '+(q.i+1)+' / '+q.l.length+' 題 · 答對 +★1</small><p class="qq">'+c[0]+'</p>'+q.o.map((o,j)=>'<button class="opt" onclick="qAns(this,'+j+')">'+o+'</button>').join('')+'</div>'}
-function qAns(b,j){const q=qs,c=q.l[q.i];document.querySelectorAll('#gbody .opt').forEach(x=>{x.disabled=true;if(x.textContent===c[1])x.classList.add('ok2')});if(q.o[j]===c[1]){q.s++;track('qz');addStars(1)}else b.classList.add('bad');setTimeout(()=>{q.i++;gQuiz()},1000)}
+function qAns(b,j){const q=qs,c=q.l[q.i];document.querySelectorAll('#gbody .opt').forEach((x,k)=>{x.disabled=true;if(q.o[k]===c[1])x.classList.add('ok2')});if(q.o[j]===c[1]){q.s++;track('qz');addStars(1)}else b.classList.add('bad');setTimeout(()=>{q.i++;gQuiz()},1000)}
 const POS={};(()=>{const c={};P.forEach((p,i)=>{const j=c[p[0]]=(c[p[0]]===undefined?0:c[p[0]]+1),q=LAY[p[0]].pp[j],l=Math.hypot(q[0],q[1])||1;POS[i]=[q[0]+q[0]/l*.75,q[1]+q[1]/l*.75]})})();
 let pl=null;
 function plStart(id){pl={id,o:shuf(P.map((p,i)=>i).filter(i=>P[i][0]===id&&P[i][1]!=='x')).slice(0,4),res:null};gPlan()}
@@ -530,8 +532,8 @@ function tpAddG(id){const v=($('#tpg').value||'').trim().slice(0,30);if(!v)retur
 function tpDay(id,d){TRIP.days[id]=Math.max(1,Math.min(14,TRIP.days[id]+d));tpSave();tRender()}
 function tpMove(j,d){const o=TRIP.order,k=j+d;if(k<0||k>=o.length)return;[o[j],o[k]]=[o[k],o[j]];tpSave();tRender()}
 function tpToggle(i,btn){const k=vk(i);if(TRIP.sel[k])delete TRIP.sel[k];else TRIP.sel[k]=1;tpSave();btn.textContent=TRIP.sel[k]?'✓ 已加入行程（再點一下移除）':'＋ 加入行程'}
-function tpCopy(){let t='';TRIP.order.forEach(id=>{const c=cm[id],n=P.map((p,i)=>i).filter(i=>P[i][0]===id&&TRIP.sel[vk(i)]),f=a=>a.map(i=>P[i][2]).join('、')||'（未選）',g=Object.keys(TRIP.gift).filter(k=>k.startsWith(id+':')).map(k=>k.slice(id.length+1)).join('、')||'（未選）';t+='【'+c.n+'】'+TRIP.days[id]+' 天\n景點：'+f(n.filter(i=>'sm'.includes(P[i][1])))+'\n餐廳：'+f(n.filter(i=>P[i][1]==='r'))+'\n伴手禮：'+g+'\n\n'});const e=$('#tpt');e.value=t.trim();e.select();try{navigator.clipboard.writeText(e.value)}catch(x){}}
-const tpD0=()=>TRIP.start?new Date(TRIP.start+'T00:00:00'):null,dAdd=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x},fD=d=>(d.getMonth()+1)+'/'+d.getDate()+'（'+'日一二三四五六'[d.getDay()]+'）',tpOff=id=>{let o=0;for(const k of TRIP.order){if(k===id)break;o+=TRIP.days[k]}return o},tpRange=id=>{const d=tpD0();if(!d)return'';const a=dAdd(d,tpOff(id)),b=dAdd(a,TRIP.days[id]-1);return fD(a)+(TRIP.days[id]>1?' – '+fD(b):'')};
+function tpCopy(){let t='';TRIP.order.forEach(id=>{const c=cm[id],n=P.map((p,i)=>i).filter(i=>P[i][0]===id&&TRIP.sel[vk(i)]),f=a=>a.map(i=>P[i][2]).join('、')||'（未選）',g=Object.keys(TRIP.gift).filter(k=>k.startsWith(id+':')).map(k=>k.slice(id.length+1)).join('、')||'（未選）';t+='【'+c.n+'】'+TRIP.days[id]+' 天\n景點：'+f(n.filter(i=>'sm'.includes(P[i][1])))+'\n餐廳：'+f(n.filter(i=>P[i][1]==='r'))+'\n伴手禮：'+g+'\n\n'});const e=$('#tpt');e.value=TT(t.trim());e.select();try{navigator.clipboard.writeText(e.value)}catch(x){}}
+const tpD0=()=>TRIP.start?new Date(TRIP.start+'T00:00:00'):null,dAdd=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x},fD=d=>(d.getMonth()+1)+'/'+d.getDate()+'（'+(window.I18N?I18N.wd:'日一二三四五六'.split(''))[d.getDay()]+'）',tpOff=id=>{let o=0;for(const k of TRIP.order){if(k===id)break;o+=TRIP.days[k]}return o},tpRange=id=>{const d=tpD0();if(!d)return'';const a=dAdd(d,tpOff(id)),b=dAdd(a,TRIP.days[id]-1);return fD(a)+(TRIP.days[id]>1?' – '+fD(b):'')};
 function tpStart(v){TRIP.start=v;tpSave();tRender()}
 function tpDayOf(i,v){TRIP.dayOf=TRIP.dayOf||{};if(+v)TRIP.dayOf[vk(i)]=+v;else delete TRIP.dayOf[vk(i)];tpSave()}
 function tRender(){const b=$('#tpb');TRIP.dayOf=TRIP.dayOf||{};
@@ -543,11 +545,11 @@ function tRender(){const b=$('#tpb');TRIP.dayOf=TRIP.dayOf||{};
  b.innerHTML='<button class="gh" style="height:auto;padding:6px 12px" onclick="tpCity=null;tRender()">‹ 返回</button><h3 style="margin:8px 0">'+c.cc+' '+c.n+'（'+TRIP.days[id]+' 天'+(tpRange(id)?'，'+tpRange(id):'')+'）</h3><div class="ih">🏛 景點與博物館</div>'+tpIdx(id,'sm').map(row).join('')+'<div class="ih">🍽 餐廳與市場</div>'+tpIdx(id,'r').map(row).join('')+'<div class="ih">🎁 伴手禮</div>'+SV[id].concat(TRIP.mine[id]||[]).map(gr).join('')+'<div class="rrow" style="margin-top:8px"><input id="tpg" type="text" maxlength="30" placeholder="自訂伴手禮…" style="flex:1;padding:8px;border:1.5px solid #c9a56a;border-radius:10px"><button class="gh tpb" onclick="tpAddG(\''+id+'\')">新增</button></div>'}
 function tpCopy(){TRIP.dayOf=TRIP.dayOf||{};const d0=tpD0();let t='';TRIP.order.forEach(id=>{const c=cm[id],n=P.map((p,i)=>i).filter(i=>P[i][0]===id&&TRIP.sel[vk(i)]&&'smr'.includes(P[i][1])),g=Object.keys(TRIP.gift).filter(k=>k.startsWith(id+':')).map(k=>k.slice(id.length+1)).join('、')||'（未選）';t+='【'+c.n+'】'+TRIP.days[id]+' 天'+(tpRange(id)?'　'+tpRange(id):'')+'\n';
  for(let k=1;k<=TRIP.days[id];k++){const it=n.filter(i=>TRIP.dayOf[vk(i)]===k);t+='第'+k+'天'+(d0?' '+fD(dAdd(d0,tpOff(id)+k-1)):'')+'：'+(it.map(i=>P[i][2]).join('、')||'（未排）')+'\n'}
- const un=n.filter(i=>!TRIP.dayOf[vk(i)]);if(un.length)t+='未排日期：'+un.map(i=>P[i][2]).join('、')+'\n';t+='伴手禮：'+g+'\n\n'});const e=$('#tpt');e.value=t.trim();e.select();try{navigator.clipboard.writeText(e.value)}catch(x){}}
+ const un=n.filter(i=>!TRIP.dayOf[vk(i)]);if(un.length)t+='未排日期：'+un.map(i=>P[i][2]).join('、')+'\n';t+='伴手禮：'+g+'\n\n'});const e=$('#tpt');e.value=TT(t.trim());e.select();try{navigator.clipboard.writeText(e.value)}catch(x){}}
 const poiText=i=>{const p=P[i],r=rt(i),rows=p[4].map(x=>x[0]+'：'+x[1]).join('；');return '• '+p[3]+' '+p[2]+(r?'（Google 評分 ★'+r.toFixed(1)+(RTV[p[2]]||RTO[p[2]]?'':' 約略')+'）':'')+'\n  '+rows+(p[5]?'\n  簡介：'+p[5]:'')+'\n  地圖：'+mapUrl(p)};
 function tpCopy(){TRIP.dayOf=TRIP.dayOf||{};const d0=tpD0();let t='';TRIP.order.forEach(id=>{const c=cm[id],n=P.map((p,i)=>i).filter(i=>P[i][0]===id&&TRIP.sel[vk(i)]&&'smr'.includes(P[i][1])),g=Object.keys(TRIP.gift).filter(k=>k.startsWith(id+':')).map(k=>k.slice(id.length+1)).join('、')||'（未選）';t+='【'+c.n+'】'+TRIP.days[id]+' 天'+(tpRange(id)?'　'+tpRange(id):'')+'\n\n';
  for(let k=1;k<=TRIP.days[id];k++){const it=n.filter(i=>TRIP.dayOf[vk(i)]===k);t+='▶ 第'+k+'天'+(d0?' '+fD(dAdd(d0,tpOff(id)+k-1)):'')+'\n'+(it.map(poiText).join('\n')||'  （尚未排入景點或餐廳）')+'\n\n'}
- const un=n.filter(i=>!TRIP.dayOf[vk(i)]);if(un.length)t+='▶ 未排日期\n'+un.map(poiText).join('\n')+'\n\n';t+='🎁 伴手禮：'+g+'\n\n--------\n\n'});const e=$('#tpt');e.value=t.trim();e.select();try{navigator.clipboard.writeText(e.value)}catch(x){}}
+ const un=n.filter(i=>!TRIP.dayOf[vk(i)]);if(un.length)t+='▶ 未排日期\n'+un.map(poiText).join('\n')+'\n\n';t+='🎁 伴手禮：'+g+'\n\n--------\n\n'});const e=$('#tpt');e.value=TT(t.trim());e.select();try{navigator.clipboard.writeText(e.value)}catch(x){}}
 // ===== role manager =====
 const rdef=i=>({n:'角色'+(i+1),g:'o',st:0,hc:'#2a1d14',sk:'#f1c9a5',sh:'#4f9ad0',pn:'#2f3a4f',hat:'none',hatc:'#c8553d',out:'pants',av:'',bio:'',bioEn:''});
 const RS=[['#f1c9a5','膚色 1'],['#e0ac82','膚色 2'],['#c68863','膚色 3'],['#8d5a3c','膚色 4']];

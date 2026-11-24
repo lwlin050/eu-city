@@ -40,6 +40,7 @@
   gate.className = 'ckm open'; gate.id = 'authgate'; gate.style.zIndex = 99;
   gate.innerHTML = '<div class="ckcard gcard" style="text-align:center"><h2 style="margin:4px 0 8px">奧・捷・斯・匈旅遊城</h2><p id="ag-m" style="margin:6px 0 12px">請用 Google 帳號登入</p><div id="ag-b" style="display:flex;justify-content:center;min-height:44px"></div><div id="ag-gw"><button class="gh" id="ag-g" style="margin-top:14px;flex:none">以訪客身分使用（不登入）</button><div class="ckm2" style="margin-top:6px">訪客的內容只存在這台裝置，不會同步，也看不到成員資料。</div></div></div>';
   document.body.appendChild(gate);
+  if (window.I18N) { const gc = gate.querySelector('.ckcard'); gc.insertBefore(I18N.picker(), gc.firstChild); }
   const gw = $('#ag-gw');
   if (C.GUEST === false && gw) gw.style.display = 'none';
   else if ($('#ag-g')) $('#ag-g').onclick = () => enterGuest();
@@ -304,7 +305,7 @@
       '<p id="acct-st"></p>' +
       '<p><small>評論、照片與行程會同步到管理員的 Google 雲端硬碟（每人獨立資料夾，其他使用者看不到）。此裝置也會留一份快取，離線時仍可使用，連線後自動補同步。</small></p>' +
       '<div class="row2"><button class="ckb" id="acct-sync">立即同步</button><button class="gh" id="acct-out">登出</button></div>');
-    const up = () => { m.querySelector('#acct-st').textContent = '狀態：' + (ST[A.state] || '') + (A.last ? '，上次同步 ' + new Date(A.last).toLocaleTimeString('zh-TW') : ''); };
+    const up = () => { m.querySelector('#acct-st').textContent = '狀態：' + (ST[A.state] || '') + (A.last ? '，上次同步 ' + new Date(A.last).toLocaleTimeString(window.I18N ? I18N.loc : 'zh-TW') : ''); };
     up();
     m.querySelector('#acct-sync').onclick = async () => { await A.syncNow(); up(); };
     m.querySelector('#acct-out').onclick = () => { if (confirm('登出後需重新登入才能使用。確定登出？')) A.signOut(); };

@@ -116,3 +116,13 @@ a.map{display:block;text-align:center;padding:11px 16px;font-weight:600;font-siz
 #syncb.err{background:#fde0d8;border-color:#d9826c}
 #syncb.off{background:#ece8e0}
 
+
+/* 語言選擇器（登入畫面、設定選單） */
+.langsel{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:2px 0 10px}
+.langsel button{font:inherit;font-size:14px;padding:5px 12px;border-radius:14px;border:1px solid rgba(120,80,40,.35);background:rgba(255,255,255,.7);color:#4a3626;cursor:pointer}
+.langsel button.on{background:#e8734a;border-color:#e8734a;color:#fff;font-weight:700}
+#sub-set .langsel{margin:4px 0 8px}
+/* 英文／日文標籤較長：放寬左側選單按鈕、避免換行 */
+html:not([lang="zh-Hant"]) .dock button{width:62px}
+html:not([lang="zh-Hant"]) .dock button small{font-size:12px;letter-spacing:0;white-space:nowrap}
+html[lang="ja"] .dock button small{font-size:11px}
