@@ -268,9 +268,9 @@ html:not([lang="zh-Hant"]) #subm{left:98px}
 #admm .ckc{border:1px solid var(--line);border-radius:12px;padding:10px;margin:6px 0;background:var(--solid)}
 
 /* 語言選擇器 */
-.langsel{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin:2px 0 10px;padding:4px;background:var(--sunk);border-radius:12px}
-.langsel button{flex:1;font:inherit;font-size:13.5px;padding:6px 10px;border-radius:9px;border:0;background:transparent;color:var(--ink2);cursor:pointer;white-space:nowrap}
-.langsel button.on{background:var(--solid);color:var(--ink);font-weight:700;box-shadow:var(--sh1)}
+:is(.langsel,.seg){display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin:2px 0 10px;padding:4px;background:var(--sunk);border-radius:12px}
+:is(.langsel,.seg) button{flex:1;font:inherit;font-size:13.5px;padding:6px 10px;border-radius:9px;border:0;background:transparent;color:var(--ink2);cursor:pointer;white-space:nowrap}
+:is(.langsel,.seg) button.on{background:var(--solid);color:var(--ink);font-weight:700;box-shadow:var(--sh1)}
 #sub-set .langsel{margin:2px 0 8px}
 
 /* ---------- 手機 ---------- */
@@ -292,7 +292,112 @@ html:not([lang="zh-Hant"]) #subm{left:98px}
 #rtin{font:inherit;font-size:13px;width:76px!important;padding:5px 8px;margin-top:6px;border:1px solid var(--bd);border-radius:8px;background:var(--solid);color:var(--ink)}
 #rtin:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-t2)}
 #rtin+.gh{margin-top:6px;padding:5px 12px!important;font-size:13px}
-.langsel{display:grid;grid-template-columns:repeat(3,1fr);flex-wrap:nowrap}
-.langsel button{padding:6px 4px;font-size:13px;overflow:hidden;text-overflow:ellipsis}
+:is(.langsel,.seg){display:grid;grid-template-columns:repeat(3,1fr);flex-wrap:nowrap}
+:is(.langsel,.seg) button{padding:6px 4px;font-size:13px;overflow:hidden;text-overflow:ellipsis}
 /* 卡片內容較長時（如日文），避免頁籤列等子元素被 flex 壓扁 */
 .ckcard>*{flex-shrink:0}
+
+/* 清單抽屜標題列：搜尋框＋關閉鈕 */
+.ihd{position:sticky;top:calc(-16px - env(safe-area-inset-top,0px));z-index:2;display:flex;gap:8px;align-items:center;margin:-4px -4px 0;padding:4px 4px 0;background:inherit}
+.ihd #q{flex:1;margin-bottom:8px}
+#index .ixc{position:static;flex:none;width:38px;height:38px;margin-bottom:8px;font-size:15px}
+/* 介面風格切換 */
+.thsel{display:flex;flex-direction:column;gap:4px;margin:0 0 6px;font-size:12.5px;color:var(--mut);font-weight:600}
+.thsel>span{padding:0 4px}
+#thsel{grid-template-columns:repeat(2,1fr);margin:0}
+
+/* ==========================================================================
+   吉卜力風（預設）：手工紙質、水彩暈染、縫線邊框、草原綠＋晴空藍＋向日葵黃
+   全部為原創的 CSS／SVG 圖樣，不使用任何作品素材。
+   ========================================================================== */
+html[data-theme=ghibli]{
+  --ink:#3b2f24;--ink2:#5c4a38;--mut:#8a7760;--mut-l:#9a8970;
+  --glass:rgba(252,246,231,.93);--glass2:#fcf6e7;--solid:#fffaf0;--sunk:#f2e8d0;
+  --line:rgba(92,74,56,.16);--line2:rgba(92,74,56,.32);--bd:rgba(92,74,56,.38);
+  --acc:#5b8f3d;--acc-d:#4a7731;--acc-t:rgba(91,143,61,.12);--acc-t2:rgba(91,143,61,.3);
+  --gold:#d8902a;--warm:#c9553f;--sky:#4f8fbf;--brn:#6b5641;
+  --sh1:0 1px 0 rgba(92,74,56,.18),0 2px 6px rgba(70,52,30,.12);
+  --sh2:0 2px 0 rgba(92,74,56,.22),0 8px 20px rgba(60,44,24,.2);
+  --sh3:0 3px 0 rgba(92,74,56,.25),0 22px 50px rgba(40,28,12,.32);
+  --blur:saturate(140%) blur(10px);
+  --sans:"Hiragino Maru Gothic ProN","Yuanti TC","jf-openhuninn-2.0","Zen Maru Gothic","M PLUS Rounded 1c","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --serif:"Noto Serif TC","Songti TC","Hiragino Mincho ProN","Yu Mincho","PMingLiU",Georgia,serif;
+  --paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .2 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --wash:radial-gradient(ellipse 70% 45% at 0 0,rgba(150,196,120,.22),transparent 70%),radial-gradient(ellipse 60% 40% at 100% 0,rgba(130,180,220,.2),transparent 70%),radial-gradient(ellipse 60% 35% at 100% 100%,rgba(240,200,110,.14),transparent 70%);
+  --hand:22px 18px 24px 17px/18px 24px 17px 22px;
+  --emblem:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3CclipPath id='c'%3E%3Ccircle cx='20' cy='20' r='18'/%3E%3C/clipPath%3E%3Cg clip-path='url(%23c)'%3E%3Crect width='40' height='40' fill='%23bfe2f2'/%3E%3Ccircle cx='28' cy='13' r='5' fill='%23f4c84c'/%3E%3Cpath d='M5 15c1-3 5-4 7-2 2-3 7-2 7 1 3 0 3 4 0 4H6c-3 0-3-2-1-3z' fill='%23fff'/%3E%3Cpath d='M0 27c7-7 14-7 21-2s13 3 19-1v16H0z' fill='%237aab52'/%3E%3Cpath d='M0 33c9-4 17-3 25 0s11 2 15 0v7H0z' fill='%23578d3a'/%3E%3Cpath d='M12 26l3-6 3 6z' fill='%23c9553f'/%3E%3Crect x='13' y='26' width='4' height='3' fill='%23fff3dc'/%3E%3C/g%3E%3Ccircle cx='20' cy='20' r='18' fill='none' stroke='%236b5641' stroke-width='2'/%3E%3C/svg%3E");
+  --wave:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='8' viewBox='0 0 72 8'%3E%3Cpath d='M2 5c6-4 10-4 16 0s10 4 16 0 10-4 16 0 10 4 16 0' fill='none' stroke='%235b8f3d' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+html[data-theme=ghibli] body{letter-spacing:.01em}
+html[data-theme=ghibli] .top{background:linear-gradient(rgba(40,52,30,.28),rgba(40,52,30,0))}
+
+/* 紙張面：面板、抽屜、子選單、對話框、工具列 */
+html[data-theme=ghibli] :is(#panel,#index,#subm,.ckcard,.dock){background:var(--paper),var(--wash),var(--glass2);border:2px solid var(--brn);
+  outline:1.5px dashed rgba(107,86,65,.32);outline-offset:-7px}
+html[data-theme=ghibli] #panel{border-bottom:0;border-radius:24px 26px 0 0}
+@media (min-width:820px){html[data-theme=ghibli] #panel{border:2px solid var(--brn);border-radius:var(--hand)}
+  html[data-theme=ghibli] #panel:before{display:block;top:-1px;left:50%;width:96px;height:20px;margin-left:-48px;border-radius:2px;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 6px,transparent 6px 12px),rgba(226,203,140,.8);transform:rotate(-2deg);box-shadow:0 1px 2px rgba(0,0,0,.12)}}
+html[data-theme=ghibli] #panel:before{background:var(--line2)}
+html[data-theme=ghibli] #index{border-width:0 2px 0 0;outline-offset:-8px}
+html[data-theme=ghibli] .ckcard{border-radius:var(--hand)}
+html[data-theme=ghibli] .ckcard:after{content:"";position:absolute;width:86px;height:20px;margin:-30px 0 0 calc(50% - 63px);border-radius:2px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 6px,transparent 6px 12px),rgba(160,200,140,.78);transform:rotate(-2.5deg);box-shadow:0 1px 2px rgba(0,0,0,.12);pointer-events:none}
+html[data-theme=ghibli] .ckm{background:rgba(40,34,20,.42)}
+html[data-theme=ghibli] .ckm .ckcard{position:relative;overflow:visible;max-height:none}
+html[data-theme=ghibli] .ckm .ckcard.gcard,html[data-theme=ghibli] #ckm .ckcard,html[data-theme=ghibli] #rm .ckcard,html[data-theme=ghibli] #bk .ckcard,html[data-theme=ghibli] #tp .ckcard{overflow:auto;max-height:90vh}
+html[data-theme=ghibli] .ckm .ckcard.gcard:after,html[data-theme=ghibli] #ckm .ckcard:after{display:none}
+html[data-theme=ghibli] .ihd{background:var(--glass2)}
+html[data-theme=ghibli] .ih{background:var(--glass2)}
+
+/* 標題：圓形風景徽章＋紙籤 */
+html[data-theme=ghibli] .top h1{background:var(--paper),var(--solid);border:2px solid var(--brn);border-radius:999px;color:var(--ink);box-shadow:var(--sh2);padding:6px 18px 6px 6px;letter-spacing:.14em}
+html[data-theme=ghibli] .top h1:before{width:30px;height:30px;background:var(--emblem) center/contain no-repeat;box-shadow:none}
+html[data-theme=ghibli] #authgate .ckcard:before{width:64px;height:64px;background:var(--emblem) center/contain no-repeat;box-shadow:none}
+
+/* 篩選鈕、工具列 */
+html[data-theme=ghibli] .chip{background:var(--paper),var(--solid);border:1.5px solid rgba(107,86,65,.55);color:var(--ink);box-shadow:0 2px 0 rgba(107,86,65,.28)}
+html[data-theme=ghibli] .chip:hover{background:var(--paper),#fff5dc}
+html[data-theme=ghibli] .chip.on{background:var(--acc);border-color:var(--acc-d);color:#fffaf0;box-shadow:0 2px 0 #3c6526}
+html[data-theme=ghibli] .tg,html[data-theme=ghibli] .tg2{background:var(--paper),var(--solid);border:2px solid var(--brn);color:var(--ink);box-shadow:0 2px 0 rgba(107,86,65,.3)}
+html[data-theme=ghibli] .dock{border-radius:20px;outline-offset:-6px;padding:6px}
+html[data-theme=ghibli] .dock button:hover{background:rgba(91,143,61,.12)}
+html[data-theme=ghibli] .dock button.on{background:var(--acc);color:#fffaf0;box-shadow:inset 0 -2px 0 #3c6526}
+html[data-theme=ghibli] #subm{border-radius:var(--hand)}
+html[data-theme=ghibli] .sb.on{background:var(--acc);color:#fffaf0}
+
+/* 3D 場景上的標籤：木牌與紙籤 */
+html[data-theme=ghibli] .cl{background:var(--paper),var(--solid);border:2px solid var(--brn);border-radius:12px 14px 11px 15px;box-shadow:0 3px 0 rgba(107,86,65,.35),0 6px 14px rgba(40,28,12,.25);padding:3px 15px 4px}
+html[data-theme=ghibli] .pl{background:var(--solid);border:1.5px solid var(--brn);box-shadow:0 2px 0 rgba(107,86,65,.3)}
+html[data-theme=ghibli] .pl:after{border-top-color:var(--brn)}
+html[data-theme=ghibli] .nm{background:rgba(59,47,36,.9);border:1.5px solid #fffaf0}
+html[data-theme=ghibli] .say{background:var(--solid);border:1.5px solid var(--brn);border-radius:14px 16px 14px 4px}
+
+/* 面板內容 */
+html[data-theme=ghibli] #panel h2:after{content:"";display:block;width:72px;height:8px;margin-top:6px;background:var(--wave) no-repeat}
+html[data-theme=ghibli] .tag{border:1.5px solid rgba(59,47,36,.35)}
+html[data-theme=ghibli] .kv{background:var(--solid);border:1.5px solid var(--line2);border-radius:14px}
+html[data-theme=ghibli] .kv>b,html[data-theme=ghibli] .kv>div{border-top:1px dashed var(--line2)}
+html[data-theme=ghibli] .kv>b:first-child,html[data-theme=ghibli] .kv>b:first-child+div{border-top:0}
+html[data-theme=ghibli] .it{border-top:1px dashed var(--line2)}
+html[data-theme=ghibli] .it i{background:var(--paper),#f3e6c4;border:1px solid rgba(107,86,65,.25)}
+html[data-theme=ghibli] .ckb{background:var(--acc);box-shadow:0 3px 0 #3c6526;border-radius:14px}
+html[data-theme=ghibli] .ckb:active{transform:translateY(2px);box-shadow:0 1px 0 #3c6526}
+html[data-theme=ghibli] .ckb.alt{background:var(--solid);color:var(--acc-d);border:1.5px solid var(--acc);box-shadow:0 3px 0 rgba(91,143,61,.35)}
+html[data-theme=ghibli] a.map{background:var(--solid);color:#2f6f99;border:1.5px solid #7fb0d3;box-shadow:0 3px 0 rgba(79,143,191,.3);border-radius:14px}
+html[data-theme=ghibli] a.map:hover{background:#eef6fb}
+html[data-theme=ghibli] .x{background:var(--sunk);border:1.5px solid rgba(107,86,65,.35)}
+html[data-theme=ghibli] .gh{border:1.5px solid var(--bd);box-shadow:0 2px 0 rgba(107,86,65,.22)}
+html[data-theme=ghibli] .ghd .gh{border:1.5px solid rgba(107,86,65,.35);box-shadow:none}
+html[data-theme=ghibli] .ghd{border-bottom:1.5px dashed var(--line2)}
+html[data-theme=ghibli] .gc,html[data-theme=ghibli] .ckc{background:var(--solid);border:1.5px solid var(--line2);box-shadow:0 2px 0 rgba(107,86,65,.12)}
+html[data-theme=ghibli] .gtabs,html[data-theme=ghibli] :is(.langsel,.seg){background:var(--sunk);border:1px solid var(--line)}
+html[data-theme=ghibli] .gtabs button.on,html[data-theme=ghibli] :is(.langsel,.seg) button.on{background:var(--acc);color:#fffaf0;box-shadow:0 2px 0 #3c6526}
+html[data-theme=ghibli] .bar i{background:repeating-linear-gradient(-45deg,#6aa046 0 6px,#5b8f3d 6px 12px)}
+html[data-theme=ghibli] .stp{border-color:rgba(107,86,65,.45);background:var(--paper),var(--solid)}
+html[data-theme=ghibli] .opt{border:1.5px solid var(--bd)}
+html[data-theme=ghibli] .trk{background:#d8ccb2}
+html[data-theme=ghibli] .legend,html[data-theme=ghibli] #syncb{background:var(--paper),var(--glass2);border:1.5px solid rgba(107,86,65,.5);color:var(--ink2)}
+html[data-theme=ghibli] .legend{box-shadow:0 2px 0 rgba(107,86,65,.25)}
+html[data-theme=ghibli] #gst{background:#fbeccb;border:1px solid rgba(216,144,42,.4)}
+html[data-theme=ghibli] .up,html[data-theme=ghibli] .up2{border-color:rgba(107,86,65,.45)}

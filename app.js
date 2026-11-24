@@ -392,7 +392,7 @@ cv.addEventListener('pointermove',e=>{if(!pt.has(e.pointerId))return;const o=pt.
  const bf=pt.size===2?mid():null;pt.set(e.pointerId,[e.clientX,e.clientY]);
  if(pt.size===2){const d=dist(),m2=mid();tds=Math.max(4,Math.min(100,tds*pd/d));pd=d;if(bf)panBy(m2[0]-bf[0],m2[1]-bf[1]);mv+=10}});
 const dist=()=>{const a=[...pt.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
-cv.addEventListener('pointerup',e=>{pt.delete(e.pointerId);if(mv<8&&pt.size===0)pick(e.clientX,e.clientY)});
+cv.addEventListener('pointerup',e=>{pt.delete(e.pointerId);if(mv<8&&pt.size===0){if($('#index').classList.contains('open')){toggleIndex(false);return}pick(e.clientX,e.clientY)}});
 cv.addEventListener('pointercancel',e=>pt.delete(e.pointerId));
 cv.addEventListener('wheel',e=>{e.preventDefault();tds=Math.max(4,Math.min(100,tds*(1+e.deltaY*.001)))},{passive:false});
 const rc=new THREE.Raycaster(),v2=new THREE.Vector2();
@@ -428,6 +428,9 @@ function togglePause(){paused=!paused;$('#m-pause').classList.toggle('on',paused
 function toggleBird(){bird=!bird;$('#m-bird').classList.toggle('on',bird);tph=bird?.12:(fc?.8:.95)}
 function renderIndex(){const q=($('#q').value||'').trim().toLowerCase();let h=sortBar();CT.forEach(c=>{const l=srt(P.map((p,i)=>[p,i]).filter(a=>a[0][0]===c.id&&(!q||(a[0][2]+TY[a[0][1]][0]+TT(a[0][2])+TT(TY[a[0][1]][0])).toLowerCase().includes(q))));if(l.length)h+='<div class="ih">'+c.cc+' '+c.n+'<small>'+l.length+'</small></div>'+l.map(itm).join('')});$('#ilist').innerHTML=h}
 function toggleIndex(v){const e=$('#index'),on=v===undefined?!e.classList.contains('open'):v;e.classList.toggle('open',on);$('#m-list').classList.toggle('on',on);if(on){renderIndex();toggleTime(false)}}
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('#index').classList.contains('open'))toggleIndex(false);else if($('#subm').classList.contains('open'))subm();else if($('#panel').classList.contains('open'))closeP()});
+function setTheme(t,init){t=t==='pro'?'pro':'ghibli';document.documentElement.dataset.theme=t;if(!init)try{localStorage.setItem('eu_theme',t)}catch(e){}document.querySelectorAll('#thsel button').forEach(b=>b.classList.toggle('on',b.dataset.th===t))}
+setTheme(document.documentElement.dataset.theme,1);
 function togglePan(){panMode=!panMode;$('#m-pan').classList.toggle('on',panMode)}
 function centerView(){let w=null;if(sel>=0){const po=pins.find(o=>o.i===sel);if(po){w=new THREE.Vector3();po.hd.getWorldPosition(w)}}if(w)ttg.set(w.x,0,w.z);else if(fc){const c=cm[fc];ttg.set(c.x,0,c.z)}else ttg.set(9,0,-12)}
 function homeView(){toggleIndex(false);toggleTime(false);if(bird)toggleBird();goCity(null)}
