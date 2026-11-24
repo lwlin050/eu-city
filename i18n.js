@@ -75,7 +75,7 @@
     set: function (l) { if (SUP.indexOf(l) < 0) return; try { localStorage.setItem(KEY, l); } catch (e) {} location.reload(); },
     picker: function () {
       var d = document.createElement('div'); d.className = 'langsel'; d.setAttribute('translate', 'no');
-      [['zh', '繁體中文'], ['en', 'English'], ['ja', '日本語']].forEach(function (a) {
+      [['zh', '🇹🇼 繁體中文'], ['en', '🇺🇸 English'], ['ja', '🇯🇵 日本語']].forEach(function (a) {
         var b = document.createElement('button'); b.type = 'button'; b.textContent = a[1]; b.setAttribute('data-l', a[0]);
         if (a[0] === lang) b.className = 'on';
         b.onclick = function () { I.set(a[0]); }; d.appendChild(b);

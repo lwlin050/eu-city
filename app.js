@@ -1,6 +1,7 @@
 // ---- UI ----
 const TT=s=>window.T?window.T(s):s;
-const CEN=c=>window.I18N&&I18N.lang==='en'?'':c.en;
+const CEN=c=>window.I18N&&I18N.lang!=='ja'?'':c.en;
+const TTR=s=>window.I18N&&I18N.lang!=='zh'?s:s.replace(/ [A-Za-z]+$/,'');
 const $=s=>document.querySelector(s), cm=Object.fromEntries(CT.map(c=>[c.id,c]));
 let flt='all',fc=null,pins=[];
 const mapUrl=p=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p[2]+' '+cm[p[0]].en);
@@ -303,7 +304,7 @@ live.push(t=>{WT.offset.x=-t*.12;BUSK.forEach(b=>b.upd(t))});
 const MAPL=[];[[8,-1.1],[27,1.7],[-18,-3]].forEach(q=>{const o=new THREE.Object3D();o.position.set(q[0],.5,q[1]);o.userData.off=.01;sc.add(o);const l=document.createElement('div');l.className='lb mapl rv';l.textContent='多瑙河 Danube';$('#labels').appendChild(l);MAPL.push({l,o,ov:1})});PLAZA.forEach(q=>{const o=new THREE.Object3D();o.position.set(q.x,1.1,q.z);o.userData.off=.01;q.g.add(o);const l=document.createElement('div');l.className='lb mapl';l.textContent='🎭 街頭表演';$('#labels').appendChild(l);MAPL.push({l,o,city:q.id})});Object.keys(EVT).forEach(id=>{const E=EVT[id],o=new THREE.Object3D();o.position.set(E.x,2.4,E.z);o.userData.off=.01;sc.add(o);const l=document.createElement('div');l.className='lb mapl';l.textContent=E.ico+' '+E.n;$('#labels').appendChild(l);MAPL.push({l,o,city:id,ev:1})});
 isl.forEach((g,k)=>{const id=CT[k].id,ad=(x,z,txt,cls)=>{const o=new THREE.Object3D();o.position.set(x,.5,z);o.userData.off=.01;g.add(o);const l=document.createElement('div');l.className='lb mapl '+cls;l.textContent=txt;$('#labels').appendChild(l);MAPL.push({l,o,city:id})};
  LBL[id].filter(l=>!/河/.test(l[2])).forEach(l=>{const q=prj(l[0],l[1]);ad(q[0],q[1],l[2],'')});
- const nm={p:'伏爾塔瓦河 Vltava',v:'多瑙河 Donau',b:'多瑙河 Duna',k:'多瑙河 Dunaj',c:'伏爾塔瓦河 Vltava'}[id],pts=RVP[id];[.28,.72].forEach(f=>{const p=pts[Math.floor(f*(pts.length-1))];ad(p.x,p.z,nm,'rv')})});
+ const nm=TTR({p:'伏爾塔瓦河 Vltava',v:'多瑙河 Donau',b:'多瑙河 Duna',k:'多瑙河 Dunaj',c:'伏爾塔瓦河 Vltava'}[id]),pts=RVP[id];[.28,.72].forEach(f=>{const p=pts[Math.floor(f*(pts.length-1))];ad(p.x,p.z,nm,'rv')})});
 let DT=0,LT=0;live.push(t=>{DT=Math.min(.1,Math.max(0,t-LT));LT=t});
 const wrapA=a=>{while(a>Math.PI)a-=6.283;while(a<-Math.PI)a+=6.283;return a};
 function mkW(id,sp,off){const L=LAY[id],a=Math.floor(Math.random()*L.pp.length);return{L,a,b:L.adj[a][0],t:Math.random(),prev:-1,sp,off,x:0,z:0,h:0,ph:Math.random()*6,path:[],mv:1}}
