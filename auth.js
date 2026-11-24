@@ -38,13 +38,13 @@
   /* ---------- 登入閘門 ---------- */
   const gate = document.createElement('div');
   gate.className = 'ckm open'; gate.id = 'authgate'; gate.style.zIndex = 99;
-  gate.innerHTML = '<div class="ckcard gcard" style="text-align:center"><h2 style="margin:4px 0 8px">奧・捷・斯・匈旅遊城</h2><p id="ag-m" style="margin:6px 0 12px">請用 Google 帳號登入</p><div id="ag-b" style="display:flex;justify-content:center;min-height:44px"></div><div id="ag-gw"><button class="gh" id="ag-g" style="margin-top:14px;flex:none">以訪客身分使用（不登入）</button><div class="ckm2" style="margin-top:6px">訪客的內容只存在這台裝置，不會同步，也看不到成員資料。</div></div></div>';
+  gate.innerHTML = '<div class="ckcard gcard" style="text-align:center"><h2 style="margin:4px 0 8px">奧・捷・斯・匈旅遊城</h2><p id="ag-m" style="margin:6px 0 12px;display:none"></p><div id="ag-b" style="display:flex;justify-content:center;min-height:44px"></div><div id="ag-gw"><button class="gh" id="ag-g" style="margin-top:14px;flex:none">以訪客身分使用（不登入）</button><div class="ckm2" style="margin-top:6px">訪客的內容只存在這台裝置，不會同步，也看不到成員資料。</div></div></div>';
   document.body.appendChild(gate);
   if (window.I18N) { const gc = gate.querySelector('.ckcard'); gc.insertBefore(I18N.picker(), gc.firstChild); }
   const gw = $('#ag-gw');
   if (C.GUEST === false && gw) gw.style.display = 'none';
   else if ($('#ag-g')) $('#ag-g').onclick = () => enterGuest();
-  const say = m => { $('#ag-m').textContent = m; };
+  const say = m => { const e = $('#ag-m'); e.textContent = m; e.style.display = m ? '' : 'none'; };
 
   function loadGsi() {
     return new Promise((res, rej) => {
@@ -56,7 +56,7 @@
   }
   function showGate(msg) {
     gate.classList.add('open');
-    say(msg || '請用 Google 帳號登入');
+    say(msg || '');
     $('#ag-b').innerHTML = '';
     loadGsi().then(() => {
       google.accounts.id.initialize({ client_id: C.CLIENT_ID, callback: onCred, auto_select: false });
