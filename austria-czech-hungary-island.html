@@ -5,13 +5,13 @@
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('eu_theme')||'ghibli'}catch(e){document.documentElement.dataset.theme='ghibli'}</script>
 <link rel="stylesheet" href="style.css">
 </head><body>
-<canvas id="c"></canvas>
+<div id="wcsky"></div><canvas id="c"></canvas><div id="paperfx"></div>
 <div class="top"><button id="tg-top" class="tg" onclick="toggleTop()" aria-label="顯示或隱藏上方選單">☰</button><h1>奧・捷・斯・匈旅遊城</h1>
 <div class="row" id="cr"></div><div class="row" id="tr"></div></div>
 <div id="labels"></div><noscript><p style="position:fixed;top:40%;width:100%;text-align:center;color:#4a3626">此頁需要 JavaScript，請用 Safari／Chrome 開啟連結。</p></noscript>
 <button id="tg-dock" class="tg2" onclick="toggleDock()" aria-label="顯示或隱藏左側選單">✕</button><nav class="dock" aria-label="選單"><button id="m-view" onclick="subm('view')">🧭<small>檢視</small></button><button id="m-list" onclick="toggleIndex()">☰<small>清單</small></button><button id="m-game" onclick="openG()">🎮<small>遊戲</small></button><button id="m-trip" onclick="openT()">📋<small>行程</small></button><button id="m-snd" onclick="toggleSound()">🔇<small>靜音</small></button><button id="m-set" onclick="subm('set')">⚙<small>設定</small></button><button id="m-time" hidden style="display:none"></button></nav>
 <div id="subm"><div id="sub-view" class="subsec"><button class="sb" id="m-all" onclick="homeView();subm()">🌍 全景</button><button class="sb" id="m-bird" onclick="toggleBird()">⬆ 鳥瞰</button><button class="sb" id="m-pan" onclick="togglePan()">✥ 平移（單指拖曳移動）</button><button class="sb" id="m-ctr" onclick="centerView()">◎ 置中</button></div>
-<div id="sub-set" class="subsec"><div class="thsel"><span>介面風格</span><div class="seg" id="thsel"><button type="button" data-th="ghibli" onclick="setTheme('ghibli')">🌿 吉卜力</button><button type="button" data-th="pro" onclick="setTheme('pro')">◆ 精緻</button></div></div><div id="timebox"><span>☀</span><input type="range" id="tm" min="6" max="24" step=".25" value="18.5" aria-label="一天中的時間"><b id="tl">18:30</b><span>☾</span></div><button class="sb" id="m-pause" onclick="togglePause()">⏸ 暫停</button><button class="sb" id="m-role" onclick="openR();subm()">👥 角色管理</button><button class="sb" onclick="openB()">💾 備份／還原</button><div class="sndbox"><div id="snd-st">聲音：靜音</div><label><input type="checkbox" id="snd-amb" checked> 環境音與音樂</label><label><input type="checkbox" id="snd-voc" checked> 語音介紹</label><label>英文語音 <select id="snd-voice" style="max-width:150px"><option value="">自動</option></select></label><label>音量 <input type="range" id="snd-vol" min="0" max="100" value="60"></label></div></div></div>
+<div id="sub-set" class="subsec"><div class="thsel"><span>介面風格</span><div class="seg" id="thsel"><button type="button" data-th="ghibli" onclick="setTheme('ghibli')">🌿 吉卜力</button><button type="button" data-th="pro" onclick="setTheme('pro')">◆ 精緻</button></div></div><div id="timebox"><span>☀</span><input type="range" id="tm" min="6" max="24" step=".25" value="18.5" aria-label="一天中的時間"><b id="tl">18:30</b><span>☾</span></div><button class="sb" id="wcb" onclick="toggleWC()">🎨 水彩畫風</button><button class="sb" id="m-pause" onclick="togglePause()">⏸ 暫停</button><button class="sb" id="m-role" onclick="openR();subm()">👥 角色管理</button><button class="sb" onclick="openB()">💾 備份／還原</button><div class="sndbox"><div id="snd-st">聲音：靜音</div><label><input type="checkbox" id="snd-amb" checked> 環境音與音樂</label><label><input type="checkbox" id="snd-voc" checked> 語音介紹</label><label>英文語音 <select id="snd-voice" style="max-width:150px"><option value="">自動</option></select></label><label>音量 <input type="range" id="snd-vol" min="0" max="100" value="60"></label></div></div></div>
 
 <aside id="index"><div class="ihd"><input id="q" type="search" placeholder="搜尋景點、餐廳、車站…" oninput="renderIndex()"><button class="x ixc" type="button" onclick="toggleIndex(false)" aria-label="關閉清單" title="關閉清單">✕</button></div><div id="ilist"></div></aside>
 <div class="legend"><span><i style="background:#e8734a"></i>景點</span><span><i style="background:#f2b632"></i>餐廳</span><span><i style="background:#5b8fd9"></i>博物館</span><span><i style="background:#3fb5a8"></i>交通</span><span><i style="background:#4aa3d9"></i>廁所</span><span><i style="background:#f2c230;border-radius:2px"></i>RegioJet</span></div>
@@ -28,5 +28,6 @@
 <script src="config.js"></script>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script src="scene2.js"></script>
 <script src="app.js"></script>
 </body></html>
