@@ -14,7 +14,8 @@ function PFdecor(g,id){const L=LAY[id],q=PFPLAZA[id],P0=PF(id);if(P0&&P0.roadSpe
 // 景點模型：平台有提供就用平台的（model() 外層會縮放 0.82、下移 0.9，這裡抵銷回原尺寸並貼齊路面）
 function PFlandmark(c,p,i){const P=PF(c.id),f=P&&P.landmarks&&P.landmarks[p[2]];if(!f||p[1]==='r'||p[1]==='w'||p[1]==='x')return null;
  const an=(P.landmarkAnchors&&P.landmarkAnchors[p[2]])||(PFANCH[c.id]&&PFANCH[c.id][p[2]]);
- if(an){const g=isl[CT.indexOf(c)],lm=f();lm.position.set(an.x,.33,an.z);lm.rotation.y=an.ry||0;g.add(lm);if(lm.userData&&lm.userData.interactive)P.interactives.push(Object.assign({object:lm},lm.userData.interactive));
+ if(an){const g=isl[CT.indexOf(c)],lm=f();lm.position.set(an.x,.33,an.z);lm.rotation.y=an.ry||0;const lbb=new THREE.Box3().setFromObject(lm);g.add(lm);
+  if(typeof LABC!=='undefined'&&LABC[p[1]]){const bb=lbb,H=new THREE.Group();H.position.set(an.x,0,an.z);H.scale.setScalar(.82);g.add(H);sgn(H,p[2],LABC[p[1]],(bb.max.y+.2)/.82)}// 平台地標的名稱看板，大小與其他城市一致if(lm.userData&&lm.userData.interactive)P.interactives.push(Object.assign({object:lm},lm.userData.interactive));
   const hb=new THREE.Mesh(new THREE.BoxGeometry((an.r||.6)*1.4,.9,(an.r||.6)*1.4),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(an.x,.8,an.z);hb.userData.i=i;g.add(hb);hits.push(hb);return new THREE.Group()}
  const G=new THREE.Group(),lm=f();if(lm.userData&&lm.userData.interactive)P.interactives.push(Object.assign({object:lm},lm.userData.interactive));lm.scale.setScalar(1/.82);lm.position.y=(PFY-.27)/.82;G.add(lm);G.position.y=-.9;G.scale.setScalar(.82);return G}
 // 車輛：平台造型，尺寸已是實際大小（addVeh 縮放傳 1）

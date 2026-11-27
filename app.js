@@ -50,15 +50,21 @@ const bx=(G,w,h,d,col,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,
 const cn=(G,r,h,n,col,x,y,z,ry)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,n),M(col));m.position.set(x,y,z);m.rotation.y=ry||0;m.castShadow=m.receiveShadow=true;G.add(m);return m};
 const cy=(G,r1,r2,h,n,col,x,y,z)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,n),M(col));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;G.add(m);return m};
 const win=(G,x,y,z)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(.09,.14),BM(0xffe6a0));m.position.set(x,y,z);G.add(m)};
+// 名稱看板：景點、博物館（建築、城堡）在建築頂端上方標名；餐廳不標
+const LABC={s:'#2f5d3a',m:'#5b3f86'};
+// 與河上代表大橋同名的景點（查理大橋、鏈橋、理髮師橋）：不另做模型、不另標名，大橋本身就是它
+const brDup=p=>{const B=typeof S2BR!=='undefined'&&S2BR[p[0]];if(!B)return false;const core=B.n.split(/[ （(]/)[0],nm=p[2].split(' ')[0];return core.includes(nm)||nm.includes(core)};
+const lab=(G,p)=>{const bg=LABC[p[1]];if(!bg||brDup(p))return;
+G.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(G);sgn(G,p[2],bg,(isFinite(bb.max.y)?bb.max.y:1)+.28)};
 const sgn=(G,txt,bg,y)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(1.4,.39),new THREE.MeshBasicMaterial({map:signTex(txt,bg),side:THREE.DoubleSide,transparent:true,depthTest:false}));m.position.y=y;m.renderOrder=20;G.add(m);signs.push(m)};
-function model(p,i,c){const G=new THREE.Group(),t=p[1],v=i%4;cy(G,.44,.48,.08,12,0xe8d3a0,0,.04,0);if(t==='w'){S2kiosk(G,1,0,0).position.y=.08;G.position.y=-.9;G.scale.setScalar(.9);return G}
- if(t==='r'){cy(G,.03,.03,.5,5,0x8a5a35,0,.3,0);const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),emojiMat(p[3]));m.position.y=.85;G.add(m);signs.push(m);sgn(G,p[2],'#9c2f2a',1.6);G.position.y=-.9;G.scale.setScalar(.9);return G}
- {const pfG=typeof PFlandmark==='function'?PFlandmark(c,p,i):null;if(pfG)return pfG}const ik=!LMK[p[2]]&&icoOf(p);if(ik){const im=IMG[ik],w=ik==='rest'?1.05:ik==='church'?.95:1.5,h=w*im.h/im.w,m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:TEX[ik],transparent:true,alphaTest:.06,side:THREE.DoubleSide}));m.position.y=.1+h/2;G.add(m);signs.push(m);if(t==='r')sgn(G,p[2],'#9c2f2a',.1+h+.22);G.position.y=-.9;G.scale.setScalar(.9);return G}
- if(t==='s'&&LMK[p[2]]){LMK[p[2]](G,c);G.position.y=-.9;G.scale.setScalar(.82);return G}
+function model(p,i,c){const G=new THREE.Group(),t=p[1],v=i%4;if(brDup(p))return G;cy(G,.44,.48,.08,12,0xe8d3a0,0,.04,0);if(t==='w'){S2kiosk(G,1,0,0).position.y=.08;G.position.y=-.9;G.scale.setScalar(.9);return G}
+ if(t==='r'){cy(G,.03,.03,.5,5,0x8a5a35,0,.3,0);const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),emojiMat(p[3]));m.position.y=.85;G.add(m);signs.push(m);G.position.y=-.9;G.scale.setScalar(.9);return G}
+ {const pfG=typeof PFlandmark==='function'?PFlandmark(c,p,i):null;if(pfG)return pfG}const ik=!LMK[p[2]]&&icoOf(p);if(ik){const im=IMG[ik],w=ik==='rest'?1.05:ik==='church'?.95:1.5,h=w*im.h/im.w,m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:TEX[ik],transparent:true,alphaTest:.06,side:THREE.DoubleSide}));m.position.y=.1+h/2;G.add(m);signs.push(m);lab(G,p);G.position.y=-.9;G.scale.setScalar(.9);return G}
+ if(t==='s'&&LMK[p[2]]){LMK[p[2]](G,c);lab(G,p);G.position.y=-.9;G.scale.setScalar(.82);return G}
  if(t==='r'){bx(G,.7,.4,.5,0xf3e3bd,0,.28,0);bx(G,.82,.06,.62,[0xe8574a,0x3fb5a8,0x2f6f9f,0xc8553d][v],0,.52,0);win(G,-.2,.28,.26);win(G,.2,.28,.26);
   const dm=M(0xfff8ea);dm.side=THREE.DoubleSide;const bw=new THREE.Mesh(new THREE.SphereGeometry(.27,16,8,0,6.283,1.5708,1.5708),dm);bw.position.y=.88;G.add(bw);
   cy(G,.25,.25,.03,16,[0xc8803a,0xe9c26a,0xd9704a,0xf0e0b0][v],0,.84,0);for(let k=0;k<4;k++)bx(G,.05,.03,.05,[0x6bab5c,0xf8f0d8,0xe8574a,0x6bab5c][k],Math.cos(k*1.6)*.12,.87,Math.sin(k*1.6)*.12);
-  cy(G,.03,.03,.5,5,0x8a5a35,0,.85,-.25);sgn(G,p[2],'#9c2f2a',1.35)}
+  }
  else if(t==='m'){bx(G,.78,.38,.46,0xf4ead2,0,.27,0);cn(G,.6,.3,4,[c.col,0x4f8fb5,0x6a7f9a,0xc8553d][v],0,.62,0,Math.PI/4).scale.z=.65;for(let k=0;k<4;k++)cy(G,.035,.035,.38,6,0xfff8ea,-.27+k*.18,.27,.27);bx(G,.8,.05,.2,0xd9c7a0,0,.1,.3)}
  else if(t==='x'){bx(G,.7,.3,.42,0xf3e3bd,0,.23,0);bx(G,.82,.05,.54,0x3fb5a8,0,.43,0);const tc=/地鐵/.test(p[2])?0x2f7fd0:/電車/.test(p[2])?0xe8574a:0x3fa56a;bx(G,.62,.2,.17,tc,0,.2,.34);bx(G,.5,.06,.18,0xfff0b8,0,.24,.34);bx(G,.1,.2,.17,tc,.33,.2,.34);sgn(G,p[2],'#1f6f8a',.9)}
  else{const wc=[0xf0e0c0,0xe8d6b0,0xd9c7a0,0xf4e8d0][v],rc=[c.col,0x4f8fb5,0x6a7f9a,0xc8553d][v];
@@ -66,6 +72,7 @@ function model(p,i,c){const G=new THREE.Group(),t=p[1],v=i%4;cy(G,.44,.48,.08,12
   else if(v===1){cy(G,.2,.24,1,10,wc,0,.55,0);cy(G,.26,.26,.07,10,rc,0,1.05,0);cn(G,.3,.5,10,rc,0,1.33,0);win(G,0,.5,.24);win(G,0,.8,.2)}
   else if(v===2){bx(G,.5,.5,.22,wc,0,.33,0);[-.28,.28].forEach(x=>{cy(G,.15,.17,.8,8,wc,x,.48,0);cn(G,.2,.32,8,rc,x,1.04,0)});bx(G,.18,.26,.23,0x6a4a32,0,.21,0);win(G,-.28,.6,.17);win(G,.28,.6,.17)}
   else{bx(G,.72,.4,.5,wc,0,.28,0);cy(G,.26,.26,.2,12,wc,0,.58,0);const dm=new THREE.Mesh(new THREE.SphereGeometry(.28,14,8,0,6.283,0,1.5708),M(rc));dm.position.y=.68;G.add(dm);cn(G,.04,.2,6,0xf2b632,0,1.05,0);win(G,-.2,.3,.26);win(G,.2,.3,.26)}}
+lab(G,p);
  G.position.y=-.9;G.scale.setScalar(.82);return G}
 const DM=(G,r,col,x,y,z)=>{const d=new THREE.Mesh(new THREE.SphereGeometry(r,14,8,0,6.283,0,1.5708),M(col));d.position.set(x,y,z);d.castShadow=true;G.add(d);return d};
 const LMK={
