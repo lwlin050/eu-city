@@ -26,7 +26,9 @@ function S2kiosk(G,s,x,z){const K=new THREE.Group();K.position.set(x||0,0,z||0);
  for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;bx(K,.025,.42,.025,gr,Math.cos(a)*.19,.27,Math.sin(a)*.19).rotation.y=-a}
  cy(K,.25,.22,.05,8,gr,0,.47,0);DM(K,.2,0x4a8a68,0,.49,0).scale.y=.9;cy(K,.04,.05,.08,8,0x4a8a68,0,.7,0);cn(K,.03,.1,6,0xd9b24a,0,.78,0);
  const wc=s2tex('wcplate',64,32,(c,w,h)=>{c.fillStyle='#f6f1e4';c.fillRect(0,0,w,h);c.strokeStyle='#2c5a44';c.lineWidth=3;c.strokeRect(2,2,w-4,h-4);c.fillStyle='#22332b';c.font='bold 22px Georgia,serif';c.textAlign='center';c.textBaseline='middle';c.fillText('WC',w/2,h/2+1)});
- [0,Math.PI].forEach(a=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(.16,.08),new THREE.MeshBasicMaterial({map:wc,side:THREE.DoubleSide}));p.position.set(Math.sin(a)*.235,.42,Math.cos(a)*.235);p.rotation.y=a;K.add(p)});
+ // 廁所標示只印在亭子牆面（四面），不另做浮在屋簷上的 WC 招牌
+ // 貼在八角亭的四個牆面正中（避開正面的門），緊貼牆面
+ [67.5,157.5,202.5,292.5].forEach(d=>{const a=d*Math.PI/180,p=new THREE.Mesh(new THREE.PlaneGeometry(.14,.07),new THREE.MeshStandardMaterial({map:wc,roughness:.8}));p.position.set(Math.sin(a)*.179,.16,Math.cos(a)*.179);p.rotation.y=a;K.add(p)});
  bx(K,.1,.22,.01,0x2c5a44,0,.15,.192);return K}
 
 // ---------- 街屋：立面窗戶貼圖＋山形屋頂，配色取自畫作 ----------
@@ -37,7 +39,7 @@ const S2HP={p:{w:[0xf2e2c0,0xe9c98a,0xf0d2b8,0xf3e7c8,0xe6d6a8],r:[0xb84a32,0xc9
  c:{w:[0xf3e8d0,0xf0dcc0,0xe8f0e0,0xf6e6c8],r:[0xb83a3a,0xc8553d,0xa8452e]}};
 function facMat(rows){return new THREE.MeshStandardMaterial({color:0xffffff,roughness:.85,map:s2tex('fac'+rows,128,128,(x,w,h)=>{x.fillStyle='#ebe5d9';x.fillRect(0,0,w,h);const rh=(h-10)/rows;for(let r=0;r<rows;r++)for(let c=0;c<3;c++){const X=14+c*38,Y=10+r*rh+rh*.18,H=rh*.6;x.fillStyle='#ffffff';x.fillRect(X-4,Y-4,28,H+8);x.fillStyle='#34445e';x.fillRect(X,Y,20,H);x.fillStyle='#ffffff';x.fillRect(X+9,Y,2,H);x.fillRect(X,Y+H*.42,20,2)}x.fillStyle='rgba(60,40,20,.18)';x.fillRect(0,0,w,5);x.fillRect(0,h-4,w,4)})})}
 function S2houses(g,id,pick,rn,MW){const pal=S2HP[id]||S2HP.p,P2=[],P3=[],all=[];
- pick(20,.5,1.15,false,.85,700).forEach(p=>{const h={x:p.x,z:p.z,w:.34+rn()*.22,d:.28+rn()*.14,h:.26+rn()*.34,ry:rn()*6.283,wc:pal.w[Math.floor(rn()*pal.w.length)],rc:pal.r[Math.floor(rn()*pal.r.length)],ch:rn()<.55};h.h>.44?P3.push(h):P2.push(h);all.push(h)});
+ pick(11,.5,1.15,false,1.05,700).forEach(p=>{const h={x:p.x,z:p.z,w:.34+rn()*.22,d:.28+rn()*.14,h:.26+rn()*.34,ry:rn()*6.283,wc:pal.w[Math.floor(rn()*pal.w.length)],rc:pal.r[Math.floor(rn()*pal.r.length)],ch:rn()<.55};h.h>.44?P3.push(h):P2.push(h);all.push(h)});
  const box=new THREE.BoxGeometry(1,1,1),B=h=>({x:h.x,y:.33+h.h/2,z:h.z,sx:h.w,sy:h.h,sz:h.d,ry:h.ry,col:h.wc});
  if(P2.length)inst(g,box,facMat(2),P2.map(B));if(P3.length)inst(g,box,facMat(3),P3.map(B));if(!all.length)return;
  inst(g,gableGeo(),MW,all.map(h=>({x:h.x,y:.33+h.h,z:h.z,sx:h.w+.07,sy:.15+h.w*.28,sz:h.d+.07,ry:h.ry,col:h.rc})));
@@ -54,7 +56,7 @@ function S2trees(g,id,ts,MW){if(!ts.length)return;inst(g,new THREE.CylinderGeome
 
 // ---------- 河岸步道：煤氣燈、鑄鐵欄杆、遊船 ----------
 function s2resample(pts,step){const o=[];let acc=0;o.push(pts[0]);for(let i=1;i<pts.length;i++){let a=pts[i-1],b=pts[i],s=Math.hypot(b[0]-a[0],b[1]-a[1]);while(acc+s>=step){const f=(step-acc)/s;a=[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];o.push(a);s=Math.hypot(b[0]-a[0],b[1]-a[1]);acc=0}acc+=s}return o}
-function S2river(g,id,D){const rv=RVP[id];if(!rv)return;const ok=(x,z,rr,pr)=>D.roadD(x,z)>rr&&D.pinD(x,z)>pr&&(!D.vg||Math.hypot(x-D.vg.x,z-D.vg.z)>1.15)&&(!D.pz||Math.hypot(x-D.pz.x,z-D.pz.z)>1.6);
+function S2river(g,id,D){const rv=RVP[id];if(!rv)return;const ok=(x,z,rr,pr)=>!S2inBR(id,x,z,.05)&&D.roadD(x,z)>rr&&D.pinD(x,z)>pr&&(!D.vg||Math.hypot(x-D.vg.x,z-D.vg.z)>1.15)&&(!D.pz||Math.hypot(x-D.pz.x,z-D.pz.z)>1.6);
  const P=s2resample(rv.map(p=>[p.x,p.z]),.2),N=P.map((p,i)=>{const a=P[Math.max(0,i-1)],b=P[Math.min(P.length-1,i+1)],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;return[-dz/l,dx/l]});
  const MW=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.7}),posts=[],rails=[],lp=[];
  [-1,1].forEach(sd=>{let prev=null;P.forEach((p,i)=>{const x=p[0]+N[i][0]*sd*.37,z=p[1]+N[i][1]*sd*.37;if(Math.hypot(x,z)<6.05&&ok(x,z,.3,.45)){posts.push({x,y:.33+.05,z,sx:1,sy:1,sz:1,col:0x2c3a34});if(prev&&prev.i===i-1){const mx=(x+prev.x)/2,mz=(z+prev.z)/2,L=Math.hypot(x-prev.x,z-prev.z);[.085,.045].forEach(h=>rails.push({x:mx,y:.33+h,z:mz,sx:1,sy:1,sz:L,ry:Math.atan2(x-prev.x,z-prev.z),col:0x2c3a34}))}prev={x,z,i}}else prev=null});
@@ -198,7 +200,7 @@ function s2umb(Z,col){const U=new THREE.Group();U.position.set(.06,0,0);Z.g.add(
 function S2walk(g,id,k){const n=id==='k'?4:2,cols=[0x23324a,0x1d1d1d,0x8a2f2a,0x4a3a2a];
  for(let i=0;i<n;i++){const j=i+k*3+5,Z=mkPerson(S2SK[j%4],[0xc9b38a,0x3b4a6a,0x6a3a3a,0x8a7a5a,0x2f3a4f][j%5],S2PN[j%4],S2HR[(j*3)%4],j%4,0x1d1d1d,j%2?'skirt':undefined,id==='v'&&i===0?'dome':null);
   if(id==='k'||(id==='p'&&i===1))s2umb(Z,cols[i%4]);const w=Object.assign(mkW(id,.16+Math.random()*.08,(i%2?1:-1)*.05),{pm:18});g.add(Z.g);live.push(t=>{stepW(w,DT);const b=gait(Z,w.ph,1);Z.g.position.set(w.x,.37+b,w.z);Z.g.rotation.y=w.h})}
- if(id==='v'){const H=new THREE.Group(),br=0x6a4028;const bd=new THREE.Mesh(new THREE.CylinderGeometry(.06,.065,.26,8),M(br));bd.rotation.z=Math.PI/2;bd.position.y=.24;H.add(bd);const nk=new THREE.Mesh(new THREE.CylinderGeometry(.03,.045,.16,6),M(br));nk.position.set(.14,.31,0);nk.rotation.z=-.6;H.add(nk);
+ if(id==='v'&&!(typeof V3ON!=='undefined'&&V3ON)){const H=new THREE.Group(),br=0x6a4028;const bd=new THREE.Mesh(new THREE.CylinderGeometry(.06,.065,.26,8),M(br));bd.rotation.z=Math.PI/2;bd.position.y=.24;H.add(bd);const nk=new THREE.Mesh(new THREE.CylinderGeometry(.03,.045,.16,6),M(br));nk.position.set(.14,.31,0);nk.rotation.z=-.6;H.add(nk);
   const hd=new THREE.Mesh(new THREE.BoxGeometry(.11,.05,.05),M(br));hd.position.set(.21,.37,0);hd.rotation.z=-.4;H.add(hd);const lg=[];[[.1,.04],[.1,-.04],[-.1,.04],[-.1,-.04]].forEach(p=>{const L=new THREE.Group();L.position.set(p[0],.2,p[1]);const m=new THREE.Mesh(new THREE.CylinderGeometry(.015,.012,.2,5),M(0x3a2414));m.position.y=-.1;L.add(m);H.add(L);lg.push(L)});
   const C=new THREE.Group();bx(C,.3,.12,.2,0x1d1d1d,0,.2,0);bx(C,.14,.1,.2,0x1d1d1d,-.08,.31,0).material=GLS;[[.1,.07],[-.1,.1]].forEach(q=>[-1,1].forEach(s=>{const w=new THREE.Mesh(new THREE.TorusGeometry(q[1],.008,4,12),M(0x6a1a1a));w.position.set(q[0],q[1],s*.11);C.add(w)}));beam(C,[.15,.2,.06],[.42,.22,.06],.006,0x3a2414);beam(C,[.15,.2,-.06],[.42,.22,-.06],.006,0x3a2414);
   const D=mkPerson(S2SK[0],0x1d1d1d,0x1d1d1d,S2HR[3],0,0x1d1d1d,undefined,'dome');D.g.position.set(.1,.2,0);D.g.rotation.y=Math.PI/2;D.l[0].rotation.x=D.l[1].rotation.x=-1.4;D.k[0].rotation.x=D.k[1].rotation.x=1.4;D.g.scale.setScalar(.9);C.add(D.g);
@@ -207,12 +209,13 @@ function S2walk(g,id,k){const n=id==='k'?4:2,cols=[0x23324a,0x1d1d1d,0x8a2f2a,0x
 // ---------- 水彩畫風後製（墨線＋水彩暈染＋紙紋），取代卡通式的直接繪製 ----------
 let S2WC=null,S2WCon=(()=>{try{return localStorage.getItem('eu_wc')!=='0'}catch(e){return true}})();
 document.documentElement.classList.toggle('wc',S2WCon);
-const S2WCFS=`uniform sampler2D tC,tD;uniform vec2 res;uniform float cn,cf;varying vec2 vUv;
+const S2WCFS=`uniform sampler2D tC,tD;uniform vec2 res;uniform float cn,cf,uOn;uniform mat4 uPI,uCW;uniform vec2 uC;varying vec2 vUv;
 float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float nz(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}
 float fb(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*nz(p);p*=2.03;a*=.5;}return v;}
 float LZ(vec2 u){float z=texture2D(tD,u).x*2.-1.;return 2.*cn*cf/(cf+cn-z*(cf-cn));}
 void main(){vec2 px=1./res,sp=vUv*res;
+ if(uOn>.5){float z0=texture2D(tD,vUv).x;if(z0<.99999){vec4 v=uPI*vec4(vUv*2.-1.,z0*2.-1.,1.);v/=v.w;vec3 w=(uCW*v).xyz;if(abs(w.x-uC.x)<7.2&&abs(w.z-uC.y)<7.2&&w.y>-1.2){gl_FragColor=vec4(texture2D(tC,vUv).rgb,1.);return;}}}
  vec2 wob=(vec2(fb(sp*.012),fb(sp*.012+17.3))-.5)*px*5.;vec2 uv=vUv+wob;
  vec3 acc=vec3(0.);float aw=0.;float jit=fb(sp*.05);
  for(int i=0;i<7;i++){float a=float(i)*.8976+jit*3.;float r=(i==0?0.:1.5+2.5*fb(sp*.03+float(i)*3.1));vec4 s=texture2D(tC,uv+vec2(cos(a),sin(a))*px*r);acc+=s.rgb*s.a;aw+=s.a;}
@@ -229,16 +232,18 @@ void main(){vec2 px=1./res,sp=vUv*res;
  float gr=fb(sp*.35);col*=.94+.1*gr-.05*(1.-lu)*gr;
  vec3 paper=vec3(.975,.95,.885);col=mix(paper,col,.9);
  col=mix(col,vec3(.24,.17,.11),ink*.82);
- gl_FragColor=vec4(col,clamp(max(al,ink*step(.02,al+sil)),0.,1.));}`;
+ // 有幾何的像素一律不透明：半透明物件（河水、玻璃等）混色後會把畫面 alpha 拉低，讓網頁背景的天空光暈與水彩雲透出來，看起來像城市上蒙了一層薄霧
+ float solid=step(texture2D(tD,vUv).x,.99999);
+ gl_FragColor=vec4(col,max(solid,clamp(max(al,ink*step(.02,al+sil)),0.,1.)));}`;
 function S2wcInit(rd){try{return S2wcInit0(rd)}catch(e){S2WCon=false;document.documentElement.classList.remove('wc');return false}}
 function S2wcInit0(rd){if(!rd.capabilities.isWebGL2&&!rd.extensions.get('WEBGL_depth_texture'))return false;
  const pr=Math.min(1.5,devicePixelRatio||1),w=Math.max(1,Math.floor(innerWidth*pr)),h=Math.max(1,Math.floor(innerHeight*pr));
  const rt=new THREE.WebGLRenderTarget(w,h,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat});rt.depthTexture=new THREE.DepthTexture(w,h);rt.depthTexture.type=THREE.UnsignedIntType;
- const mat=new THREE.ShaderMaterial({uniforms:{tC:{value:rt.texture},tD:{value:rt.depthTexture},res:{value:new THREE.Vector2(w,h)},cn:{value:1.5},cf:{value:500}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:S2WCFS,transparent:true,depthTest:false,depthWrite:false});
+ const mat=new THREE.ShaderMaterial({uniforms:{tC:{value:rt.texture},tD:{value:rt.depthTexture},res:{value:new THREE.Vector2(w,h)},cn:{value:1.5},cf:{value:500},uOn:{value:0},uPI:{value:new THREE.Matrix4()},uCW:{value:new THREE.Matrix4()},uC:{value:new THREE.Vector2()}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:S2WCFS,transparent:true,depthTest:false,depthWrite:false});
  const ps=new THREE.Scene(),q=new THREE.Mesh(new THREE.PlaneGeometry(2,2),mat);q.frustumCulled=false;ps.add(q);S2WC={rt,mat,ps,pc:new THREE.OrthographicCamera(-1,1,1,-1,0,1),pr};return true}
 function S2resize(){if(!S2WC)return;const w=Math.max(1,Math.floor(innerWidth*S2WC.pr)),h=Math.max(1,Math.floor(innerHeight*S2WC.pr));S2WC.rt.setSize(w,h);S2WC.mat.uniforms.res.value.set(w,h)}
 function S2render(rd,sc,cam){if(S2mapOn!==S2WCon)try{S2maps()}catch(e){S2mapOn=S2WCon}if(S2WCon&&(S2WC||S2wcInit(rd))){if(S2WC.ns!==signs.length){S2WC.ns=signs.length;signs.forEach(m=>{if(m.material&&m.material.depthTest===false)m.layers.set(1)})}
- S2WC.mat.uniforms.cn.value=cam.near;S2WC.mat.uniforms.cf.value=cam.far;cam.layers.set(0);rd.setRenderTarget(S2WC.rt);rd.clear();rd.render(sc,cam);rd.setRenderTarget(null);rd.clear();rd.render(S2WC.ps,S2WC.pc);
+ {const U=S2WC.mat.uniforms,vc=((typeof V3ON!=='undefined'&&V3ON)||(typeof PFon==='function'&&PFon('v')))&&CT.find(c=>c.id==='v');U.uOn.value=vc?1:0;if(vc){U.uPI.value.copy(cam.projectionMatrixInverse);U.uCW.value.copy(cam.matrixWorld);U.uC.value.set(vc.x,vc.z)}}S2WC.mat.uniforms.cn.value=cam.near;S2WC.mat.uniforms.cf.value=cam.far;cam.layers.set(0);rd.setRenderTarget(S2WC.rt);rd.clear();rd.render(sc,cam);rd.setRenderTarget(null);rd.clear();rd.render(S2WC.ps,S2WC.pc);
  cam.layers.set(1);const ac=rd.autoClear,bg=sc.background;rd.autoClear=false;rd.clearDepth();rd.render(sc,cam);rd.autoClear=ac;cam.layers.set(0)}else{cam.layers.enable(0);cam.layers.enable(1);rd.render(sc,cam)}}
 function toggleWC(v){S2WCon=v===undefined?!S2WCon:!!v;try{localStorage.setItem('eu_wc',S2WCon?'1':'0')}catch(e){}document.documentElement.classList.toggle('wc',S2WCon);const b=document.getElementById('wcb');if(b)b.classList.toggle('on',S2WCon)}
 (()=>{const b=document.getElementById('wcb');if(b)b.classList.toggle('on',S2WCon)})();
@@ -246,4 +251,116 @@ function toggleWC(v){S2WCon=v===undefined?!S2WCon:!!v;try{localStorage.setItem('
 const S2PCW={p:{bg:'#878368',rd:'#d8cbac',re:'#5e5040'},v:{bg:'#968866',rd:'#dccfb0',re:'#5e4c3a'},b:{bg:'#7a7468',rd:'#d2c6ae',re:'#4a4038'},k:{bg:'#80856a',rd:'#d6ccae',re:'#525038'},c:{bg:'#8c8270',rd:'#d8caac',re:'#5e4638'}};
 let S2PCO=null,S2mapOn=null;
 function S2maps(){if(typeof mapMats==='undefined'||mapMats.length<CT.length)return;if(!S2PCO){S2PCO={};CT.forEach(c=>S2PCO[c.id]=PC[c.id])}
- CT.forEach((c,k)=>{PC[c.id]=S2WCon?Object.assign({},S2PCO[c.id],S2PCW[c.id]||{}):S2PCO[c.id];const m=mapMats[k],old=m.map,tx=cityMap(c.id);m.map=tx;m.emissiveMap=tx;m.needsUpdate=true;if(old)old.dispose()});S2mapOn=S2WCon}
+ CT.forEach((c,k)=>{if((typeof V3ON!=='undefined'&&V3ON&&c.id==='v')||(typeof PFon==='function'&&PFon(c.id)))return;PC[c.id]=S2WCon?Object.assign({},S2PCO[c.id],S2PCW[c.id]||{}):S2PCO[c.id];const m=mapMats[k],old=m.map,tx=cityMap(c.id);m.map=tx;m.emissiveMap=tx;m.needsUpdate=true;if(old)old.dispose()});S2mapOn=S2WCon}
+
+// ---------- 交通：斑馬線、紅綠燈、車輛禮讓行人（所有城市） ----------
+const S2TLM={r:[new THREE.MeshBasicMaterial({color:0x3a1512}),new THREE.MeshBasicMaterial({color:0xff3b30})],y:[new THREE.MeshBasicMaterial({color:0x3a3012}),new THREE.MeshBasicMaterial({color:0xffc400})],g:[new THREE.MeshBasicMaterial({color:0x10301c}),new THREE.MeshBasicMaterial({color:0x2ee06a})]};
+function S2tl(T,t,grp){const c=(t+T.off)%10;if(grp===0)return c<4?'g':c<5?'y':'r';return c<5?'r':c<9?'g':'y'}
+function S2traffic(g,id){const L=LAY[id];if(!L||!L.adj)return;const PFf=typeof PF==='function'?PF(id):null,po=L.road&&L.road.sidewalk?L.road.asphalt/2+L.road.sidewalk*.6:.36;L.tl={};const zb=[],zp=[],D=new THREE.Object3D(),poles=[];
+ L.adj.forEach((nb,n)=>{if(nb.length<3)return;const P=L.pp[n],T={off:Math.random()*10,grp:{},poles:[]};L.tl[n]=T;
+  nb.forEach((a,i)=>{T.grp[a]=i%2;const Q=L.pp[a],len=Math.hypot(Q[0]-P[0],Q[1]-P[1]);if(len<1.1)return;const ux=(Q[0]-P[0])/len,uz=(Q[1]-P[1])/len,px=-uz,pz=ux,ry=Math.atan2(ux,uz);
+   // 斑馬線條紋數依路寬決定，條紋寬＝間距的一半（路變窄後原本固定 5 條、寬 .055 會互相重疊成一整塊白色長方形）
+   const zy=PFf?.349:.335,RS=L.road,aw=RS?RS.asphalt:.56,nz=Math.max(5,Math.round(aw/.112)),sp=aw/nz,sw=sp*.5;D.position.set(P[0]+ux*.46,zy,P[1]+uz*.46);D.rotation.set(0,ry,0);D.scale.set(aw/.56,1,1);D.updateMatrix();zp.push(D.matrix.clone());D.scale.set(sw/.055,1,1);for(let k=0;k<nz;k++){const o=(k-(nz-1)/2)*sp;D.position.set(P[0]+ux*.46+px*o,zy+.003,P[1]+uz*.46+pz*o);D.rotation.set(0,ry,0);D.updateMatrix();zb.push(D.matrix.clone())}D.scale.set(1,1,1);
+   if(i<2&&PFf&&PFf.makeTrafficLight){const tl=PFf.makeTrafficLight();tl.group.position.set(P[0]+ux*.62+px*po,.33,P[1]+uz*.62+pz*po);tl.group.rotation.y=ry;g.add(tl.group);T.poles.push({grp:i%2,tl})}
+   else if(i<2){const G=new THREE.Group();G.position.set(P[0]+ux*.62+px*po,.33,P[1]+uz*.62+pz*po);G.rotation.y=ry;g.add(G);
+    const pm=M(0x2b2b30),pole=new THREE.Mesh(new THREE.CylinderGeometry(.011,.014,.44,6),pm);pole.position.y=.22;G.add(pole);
+    const hs=new THREE.Mesh(new THREE.BoxGeometry(.06,.17,.045),pm);hs.position.y=.5;G.add(hs);const lamps={};
+    [['r',.555],['y',.5],['g',.445]].forEach(([c,y])=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.018,8,6),S2TLM[c][0]);m.position.set(0,y,.024);m.userData.v3skip=1;G.add(m);lamps[c]=m});
+    T.poles.push({grp:i%2,lamps})}})});
+ if(zb.length){const pd=new THREE.InstancedMesh(new THREE.BoxGeometry(.56,.004,.22),new THREE.MeshLambertMaterial({color:0x5c5f66,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),zp.length);zp.forEach((mx,i)=>pd.setMatrixAt(i,mx));pd.receiveShadow=true;pd.frustumCulled=false;g.add(pd);
+  const m=new THREE.InstancedMesh(new THREE.BoxGeometry(.055,.006,.18),new THREE.MeshBasicMaterial({color:0xfbfaf5,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}),zb.length);zb.forEach((mx,i)=>m.setMatrixAt(i,mx));m.frustumCulled=false;g.add(m)}
+ const TT=Object.values(L.tl);S2A.push(t=>{TT.forEach(T=>T.poles.forEach(p=>{const st=S2tl(T,t,p.grp);if(p.tl){if(p.st!==st){p.st=st;p.tl.setState(st)}return}for(const c in p.lamps){const mm=S2TLM[c][st===c?1:0];if(p.lamps[c].material!==mm)p.lamps[c].material=mm}}))})}
+// 車輛：前方有行人就停、紅燈停在停止線前（等太久會慢慢通過，避免卡死）
+function S2block(w,t,s){const pp=w.L.pp,A=pp[w.a],B=pp[w.b],len=Math.hypot(B[0]-A[0],B[1]-A[1])||1,rem=(1-w.t)*len;let blk=false;
+ const T=w.L.tl&&w.L.tl[w.b];if(T&&rem>.55&&rem<.85&&T.grp[w.a]!==undefined&&S2tl(T,t,T.grp[w.a])!=='g')blk=true;
+ if(!blk&&typeof WK!=='undefined'){const fx=Math.sin(w.h),fz=Math.cos(w.h),reach=.3+.22*(s||1);for(const o of WK){if(o.L!==w.L)continue;const dx=o.x-w.x,dz=o.z-w.z,ah=dx*fx+dz*fz;if(ah>0&&ah<reach&&Math.abs(dx*fz-dz*fx)<.17){blk=true;break}}}
+ if(blk){w.blk=(w.blk||0)+DT;if(w.blk>6){w.blk=-1.5;return false}return w.blk>0}w.blk=0;return false}
+
+// ---------- 各城市代表性大橋（查理大橋、塞切尼鏈橋、新橋 UFO 橋、理髮師橋、帝國大橋）----------
+// 模型本地 x 軸＝橋的跨距方向，底部 y=0 對齊城市地面；由 S2bridgeFind 在河道上找一處不壓道路／景點標記的位置。
+const S2BR={},S2BRN={p:'查理大橋 Karlův most',b:'塞切尼鏈橋 Széchenyi lánchíd',k:'新橋（UFO 橋）Most SNP',c:'理髮師橋 Lazebnický most',v:'帝國大橋 Reichsbrücke'};
+const S2BMC={};function S2BM(c){return S2BMC[c]||(S2BMC[c]=new THREE.MeshStandardMaterial({color:c,roughness:.82,metalness:.05}))}
+function S2Bbox(G,w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),S2BM(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;G.add(m);return m}
+function S2Bcyl(G,r1,r2,h,n,c,x,y,z){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,n),S2BM(c));m.position.set(x,y,z);m.castShadow=true;G.add(m);return m}
+function S2Brod(G,a,b,r,c){const d=new THREE.Vector3().subVectors(b,a),L=d.length(),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,L,5),S2BM(c));m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());m.castShadow=true;G.add(m);return m}
+function S2Btube(G,pts,r,c){const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),48,r,6),S2BM(c));m.castShadow=true;G.add(m);return m}
+// 帶拱洞的立面（在 XY 平面畫，沿 Z 擠出 depth，置中）
+function S2Barches(G,L,H,n,r,spring,depth,c){const s=new THREE.Shape();s.moveTo(-L/2,0);s.lineTo(L/2,0);s.lineTo(L/2,H);s.lineTo(-L/2,H);s.lineTo(-L/2,0);
+ const sp=L/n;for(let i=0;i<n;i++){const cx=-L/2+sp*(i+.5),h=new THREE.Path();h.moveTo(cx-r,0);h.lineTo(cx-r,spring);h.absarc(cx,spring,r,Math.PI,0,true);h.lineTo(cx+r,0);h.lineTo(cx-r,0);s.holes.push(h)}
+ const g=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:false,curveSegments:10});g.translate(0,0,-depth/2);const m=new THREE.Mesh(g,S2BM(c));m.castShadow=m.receiveShadow=true;G.add(m);return m}
+function S2Bperson(G,x,y,z,c){S2Bcyl(G,.011,.018,.085,6,c,x,y+.0425,z);const h=new THREE.Mesh(new THREE.SphereGeometry(.014,6,5),S2BM(c));h.position.set(x,y+.1,z);G.add(h)}
+// 巴洛克雕像（深色砂岩）；kind：saint 一般聖人、nepomuk 內波穆克（持十字架＋金色五星光環）、calvary 各各他金色十字架、crucifix 十字架受難像、knight 金色騎士
+function S2Bsaint(G,x,y,z,ry,kind,k){const S=new THREE.Group();S.position.set(x,y,z);S.rotation.y=ry;G.add(S);S.scale.setScalar(1.3);const dk=0x3d3830,gold=0xd9ae3a;
+ if(kind==='calvary'||kind==='crucifix'){const gc=kind==='calvary'?gold:dk;S2Bbox(S,.012,.2,.012,dk,0,.1,0);S2Bbox(S,.09,.012,.012,dk,0,.15,0);S2Bbox(S,.012,.07,.01,gc,0,.12,.01);S2Bbox(S,.07,.008,.008,gc,0,.15,.012);
+  if(kind==='calvary'){const ar=new THREE.Mesh(new THREE.TorusGeometry(.065,.006,5,16,Math.PI),S2BM(gold));ar.position.set(0,.13,.004);S.add(ar);[-1,1].forEach(a=>S2Bcyl(S,.012,.016,.07,6,dk,a*.05,.035,.01))}return S}
+ const gc=kind==='knight'?gold:dk;S2Bcyl(S,.014,.026,.08,7,gc,0,.04,0);S2Bcyl(S,.012,.014,.04,7,gc,0,.1,0);const hd=new THREE.Mesh(new THREE.SphereGeometry(.014,8,6),S2BM(gc));hd.position.set(0,.133,0);S.add(hd);
+ const arm=S2Bbox(S,.008,.05,.008,gc,.016,.1,.012);arm.rotation.z=-.6-(k%3)*.3;
+ if(kind==='nepomuk'){S2Bbox(S,.005,.05,.005,gold,-.006,.1,.02);S2Bbox(S,.025,.005,.005,gold,-.006,.115,.02);for(let i=0;i<5;i++){const a=i/5*Math.PI*2,st=new THREE.Mesh(new THREE.OctahedronGeometry(.008),S2BM(gold));st.position.set(Math.cos(a)*.026,.158+Math.sin(a)*.026*.25,Math.sin(a)*.026);S.add(st)}}
+ else if(kind==='knight'){const sw=S2Bbox(S,.005,.08,.005,0xf2d070,.024,.13,.01);sw.rotation.z=-.35;const sh=S2Bbox(S,.004,.035,.03,gold,-.02,.09,0)}
+ else{const bk=S2Bbox(S,.018,.012,.014,dk,-.012,.11,.014);bk.rotation.z=.4}
+ return S}
+// 鏈橋石獅：臥姿，前爪伸出、鬃毛、尾巴
+function S2Blion(G,x,y,z,ry){const S=new THREE.Group();S.position.set(x,y,z);S.rotation.y=ry;G.add(S);S.scale.setScalar(1.3);const c=0xcdbb8c,c2=0xb9a675;
+ S2Bbox(S,.11,.045,.05,c,0,.0225,0);const mane=new THREE.Mesh(new THREE.SphereGeometry(.032,10,8),S2BM(c2));mane.scale.set(.8,1,1.1);mane.position.set(.05,.055,0);S.add(mane);
+ const hd=new THREE.Mesh(new THREE.SphereGeometry(.02,8,6),S2BM(c));hd.position.set(.072,.058,0);S.add(hd);S2Bbox(S,.016,.012,.016,c,.088,.05,0);
+ [-1,1].forEach(s=>S2Bbox(S,.05,.014,.014,c,.07,.007,s*.016));const tl=S2Bbox(S,.05,.008,.008,c,-.07,.012,.022);tl.rotation.y=.5;return S}
+function S2bridgeModel(id,L){const G=new THREE.Group();G.name='Bridge_'+id;
+ if(id==='p'){// 查理大橋：8 孔砂岩半圓拱、整體微拱起的橋面、尖形破水墩、兩端哥德式橋塔；欄杆上巴洛克雕像（含聖約翰・內波穆克、各各他十字架），橋墩旁布倫茨維克騎士柱
+  const st=0xb6a584,dk=0x8e7e60,n=8,sp=L/n,H0=.24,rise=.06,Y=x=>H0+rise*(1-Math.pow(2*x/L,2));
+  // 拱洞直接畫進外輪廓（底邊逐孔凹進去），不用 holes，避免拱洞貼底邊時三角化失敗
+  const sh=new THREE.Shape();sh.moveTo(-L/2,0);for(let i=0;i<n;i++){const cx=-L/2+sp*(i+.5),r=sp*.39,spr=.07;sh.lineTo(cx-r,0);sh.lineTo(cx-r,spr);sh.absarc(cx,spr,r,Math.PI,0,true);sh.lineTo(cx+r,0)}
+  sh.lineTo(L/2,0);for(let i=0;i<=24;i++){const x=L/2-L*i/24;sh.lineTo(x,Y(x))}sh.lineTo(-L/2,0);
+  const ag=new THREE.ExtrudeGeometry(sh,{depth:.28,bevelEnabled:false,curveSegments:12});ag.translate(0,0,-.14);const am=new THREE.Mesh(ag,S2BM(st));am.castShadow=am.receiveShadow=true;G.add(am);
+  for(let i=1;i<n;i++){const x=-L/2+sp*i;S2Bbox(G,.06,.09,.3,dk,x,.045,0);[-1,1].forEach(sd=>{const c=new THREE.Mesh(new THREE.ConeGeometry(.045,.07,4),S2BM(dk));c.rotation.x=sd*Math.PI/2;c.rotation.y=Math.PI/4;c.scale.set(.75,1,.75);c.position.set(x,.045,sd*.185);c.castShadow=true;G.add(c)})}
+  const seg=12;for(let i=0;i<seg;i++){const x0=-L/2+L*i/seg,x1=x0+L/seg,y0=Y(x0),y1=Y(x1),mx=(x0+x1)/2,my=(y0+y1)/2,ln=Math.hypot(x1-x0,y1-y0),rz=Math.atan2(y1-y0,x1-x0);
+   const pv=S2Bbox(G,ln+.004,.012,.24,0x9d8f76,mx,my+.006,0);pv.rotation.z=rz;[-1,1].forEach(sd=>{const pa=S2Bbox(G,ln+.004,.05,.024,st,mx,my+.025,sd*.128);pa.rotation.z=rz})}
+  const slots=[];for(let k=0;k<6;k++)slots.push(-L/2+L*(k+.75)/6.5);
+  slots.forEach((x,k)=>[-1,1].forEach(sd=>{const y=Y(x)+.05,kind=(k===3&&sd===1)?'nepomuk':(k===1&&sd===-1)?'calvary':'saint';S2Bbox(G,.045,.04,.045,dk,x,y+.02,sd*.128);S2Bsaint(G,x,y+.04,sd*.128,sd>0?Math.PI:0,kind,k)}));
+  // 布倫茨維克騎士柱：立在小城端第二座橋墩外側，柱頂金色騎士持劍
+  {const x=-L/2+sp*2,z=-.2;S2Bcyl(G,.018,.022,Y(x)+.12,8,0xa8977a,x,(Y(x)+.12)/2,z);S2Bsaint(G,x,Y(x)+.12,z,0,'knight',0)}
+  const T=(x,w,h,d)=>{S2Bbox(G,w,h,d,0xa8977a,x,h/2,0);S2Bbox(G,w+.002,.15,.14,0x3a3129,x,.075+H0,0);const r=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.72,.3,4),S2BM(0x3b3e47));r.rotation.y=Math.PI/4;r.position.set(x,h+.15,0);r.castShadow=true;G.add(r);[-1,1].forEach(a=>[-1,1].forEach(b=>{const c=new THREE.Mesh(new THREE.ConeGeometry(.025,.12,4),S2BM(0x3b3e47));c.position.set(x+a*w*.45,h+.06,b*d*.45);G.add(c)}))};
+  T(L/2+.1,.22,.62,.3);T(-L/2-.09,.18,.54,.26);S2Bbox(G,.14,.36,.18,0xa8977a,-L/2-.1,.18,.22);
+ }else if(id==='b'){// 塞切尼鏈橋：兩座凱旋門式石塔＋鐵鏈懸索＋橋頭石獅
+  const stn=0xd9cdb0,stl=0x6d7c72,a=L*.27,top=.62,dy=.22;
+  S2Bbox(G,L,.04,.27,stl,0,dy,0);S2Bbox(G,L,.006,.2,0x5b5b5b,0,dy+.023,0);[-1,1].forEach(s=>S2Bbox(G,L,.035,.012,stl,0,dy+.04,s*.13));
+  [-a,a].forEach(x=>{const P=new THREE.Group();P.position.x=x;G.add(P);const sh=new THREE.Shape();sh.moveTo(-.22,0);sh.lineTo(-.12,0);sh.lineTo(-.12,.33);sh.absarc(0,.33,.12,Math.PI,0,true);sh.lineTo(.12,0);sh.lineTo(.22,0);sh.lineTo(.22,top);sh.lineTo(-.22,top);sh.lineTo(-.22,0);
+   const g=new THREE.ExtrudeGeometry(sh,{depth:.15,bevelEnabled:false,curveSegments:10});g.translate(0,0,-.075);g.rotateY(Math.PI/2);const m=new THREE.Mesh(g,S2BM(stn));m.castShadow=m.receiveShadow=true;P.add(m);S2Bbox(P,.19,.04,.48,0xcabd9e,0,top+.02,0);S2Bbox(P,.2,.1,.5,0xb9ad8e,0,.05,0)});
+  [-1,1].forEach(s=>{const z=s*.17,pts=[new THREE.Vector3(-L/2,dy+.03,z),new THREE.Vector3(-a,top,z)];for(let i=1;i<10;i++){const f=i/10,x=-a+2*a*f;pts.push(new THREE.Vector3(x,dy+.07+(top-dy-.07)*Math.pow(2*f-1,2),z))}pts.push(new THREE.Vector3(a,top,z),new THREE.Vector3(L/2,dy+.03,z));
+   [[0,2],[1,pts.length-1],[pts.length-2,pts.length]].forEach((r,j)=>S2Btube(G,pts.slice(r[0],r[1]),.012,stl));
+   for(let x=-a+.08;x<a-.04;x+=.08){const f=(x+a)/(2*a);S2Brod(G,new THREE.Vector3(x,dy+.02,z),new THREE.Vector3(x,dy+.07+(top-dy-.07)*Math.pow(2*f-1,2),z),.003,stl)}});
+  // 鏈橋石獅：橋頭兩端各一對，臥姿、鬃毛、面朝橋外
+  [-1,1].forEach(e=>[-1,1].forEach(s=>{const x=e*(L/2+.07),z=s*.21;S2Bbox(G,.16,.1,.1,0xb9ad8e,x,.05,z);S2Blion(G,x,.1,z,e>0?0:Math.PI)}));
+  [-1,1].forEach(e=>S2Bbox(G,.12,dy,.34,stn,e*L/2,dy/2,0));
+ }else if(id==='k'){// 新橋（Most SNP）：單一傾斜 A 型塔＋塔頂 UFO 飛碟餐廳＋斜張鋼索
+  const stl=0x8b9198,dk=0x41474e,dy=.22,x0=-L/2+.06,tp=new THREE.Vector3(x0-.16,1.05,0);
+  S2Bbox(G,L,.04,.3,stl,0,dy,0);S2Bbox(G,L,.006,.22,0x575757,0,dy+.023,0);[-1,1].forEach(s=>S2Bbox(G,L,.03,.01,stl,0,dy+.04,s*.145));
+  [-1,1].forEach(s=>S2Brod(G,new THREE.Vector3(x0,0,s*.17),tp,.028,dk));
+  S2Bcyl(G,.2,.14,.06,24,0x9ea6ad,tp.x,tp.y+.05,0);S2Bcyl(G,.21,.21,.02,24,0x6ab0d8,tp.x,tp.y+.09,0);const dm=new THREE.Mesh(new THREE.SphereGeometry(.15,20,8,0,Math.PI*2,0,Math.PI/2),S2BM(0xb8bfc6));dm.scale.y=.35;dm.position.set(tp.x,tp.y+.1,0);G.add(dm);
+  [-1,1].forEach(s=>{for(let i=1;i<=6;i++){const x=x0+(L-.12)*i/6.3;S2Brod(G,new THREE.Vector3(tp.x,tp.y-.05,s*.02),new THREE.Vector3(x,dy+.02,s*.14),.004,0xd8dde2)}
+   for(let i=1;i<=3;i++)S2Brod(G,new THREE.Vector3(tp.x,tp.y-.05,s*.02),new THREE.Vector3(x0-.25-i*.07,.02,s*.12),.004,0xd8dde2)});
+  S2Bbox(G,.12,dy,.34,0xa9a49a,L/2,dy/2,0);
+ }else if(id==='c'){// 理髮師橋：石墩＋木造橋面與欄杆，橋上立聖約翰・內波穆克像與十字架
+  const wd=0x8a6442,wd2=0x6e4c30,sto=0xb8ad94,dy=.2;
+  [-1,1].forEach(e=>S2Bbox(G,.14,dy,.3,sto,e*L/2,dy/2,0));S2Bbox(G,.1,dy,.26,sto,0,dy/2,0);
+  S2Bbox(G,L,.03,.24,wd,0,dy+.015,0);[-1,1].forEach(s=>{S2Bbox(G,L,.04,.03,wd2,0,dy-.02,s*.09);S2Bbox(G,L,.012,.012,wd2,0,dy+.1,s*.115);S2Bbox(G,L,.01,.01,wd2,0,dy+.06,s*.115);for(let x=-L/2;x<=L/2+.001;x+=L/12)S2Bbox(G,.014,.09,.014,wd2,x,dy+.06,s*.115)});
+  // 橋中央兩側：聖約翰・內波穆克像（金色五星光環）與耶穌受難十字架
+  S2Bbox(G,.06,.09,.06,sto,0,dy+.075,.16);S2Bsaint(G,0,dy+.12,.16,Math.PI,'nepomuk',0);
+  S2Bbox(G,.06,.05,.06,sto,0,dy+.055,-.16);S2Bsaint(G,0,dy+.08,-.16,0,'crucifix',0);
+ }else if(id==='v'){// 帝國大橋：混凝土箱梁＋兩座圓墩＋細長燈柱＋紅白紅國旗
+  const cc=0xcac5bb,dy=.2;S2Bbox(G,L,.07,.3,cc,0,dy,0);S2Bbox(G,L,.006,.22,0x575757,0,dy+.038,0);[-1,1].forEach(s=>S2Bbox(G,L,.035,.012,0x7c8288,0,dy+.055,s*.145));
+  [-1,1].forEach(e=>{S2Bcyl(G,.06,.07,dy,12,cc,e*L*.2,dy/2-.03,0);S2Bbox(G,.12,dy,.34,cc,e*L/2,dy/2,0)});
+  for(let i=0;i<5;i++){const x=-L/2+.1+(L-.2)*i/4;[-1,1].forEach(s=>{S2Bcyl(G,.006,.008,.26,5,0x3d4248,x,dy+.16,s*.15);S2Bbox(G,.05,.012,.02,0xfff3c8,x,dy+.29,s*.135)})}
+  [-1,1].forEach(e=>{const x=e*(L/2+.02);S2Bcyl(G,.006,.006,.42,5,0xdddddd,x,.21+dy*.0,.19);[0xc8102e,0xffffff,0xc8102e].forEach((c,j)=>S2Bbox(G,.12,.025,.004,c,x+e*.065,.4-j*.025,.19))});
+ }
+ return G}
+// 在河道上找橋位：靠近市中心、橋身與兩端不壓道路與景點標記
+function S2bridgeFind(id,pts,L,roadD,pinD){const P=s2resample(pts,.1);let best=null;
+ for(const th of [[.6,.35,.5,.42],[.5,.28,.42,.36],[.42,.22,.36,.3]]){for(let i=2;i<P.length-2;i++){const a=P[i-2],b=P[i+2],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1,nx=-dz/l,nz=dx/l,c=P[i];
+  if(Math.hypot(c[0],c[1])>5)continue;const ex=L/2+.25,E=[[c[0]+nx*ex,c[1]+nz*ex],[c[0]-nx*ex,c[1]-nz*ex]],Q=[[c[0]+nx*L/4,c[1]+nz*L/4],[c[0]-nx*L/4,c[1]-nz*L/4]];
+  if(E.some(e=>Math.hypot(e[0],e[1])>6))continue;if(roadD(c[0],c[1])<th[0]||pinD(c[0],c[1])<th[2])continue;if(E.concat(Q).some(e=>roadD(e[0],e[1])<th[1]||pinD(e[0],e[1])<th[3]))continue;
+  const sc=Math.hypot(c[0],c[1]);if(!best||sc<best.sc)best={x:c[0],z:c[1],ry:Math.atan2(-nz,nx),L,sc,ax:E[0][0],az:E[0][1],bx:E[1][0],bz:E[1][1]}}if(best)break}
+ if(best){best.n=S2BRN[id];S2BR[id]=best}return best}
+function S2inBR(id,x,z,pad){const B=S2BR[id];if(!B)return false;const dx=B.bx-B.ax,dz=B.bz-B.az,t=Math.max(0,Math.min(1,((x-B.ax)*dx+(z-B.az)*dz)/(dx*dx+dz*dz||1)));return Math.hypot(x-B.ax-dx*t,z-B.az-dz*t)<.32+(pad||0)}
+function S2bridgePlace(g,id,B){if(!B)return;const G=S2bridgeModel(id,B.L);G.position.set(B.x,.33,B.z);G.rotation.y=B.ry;g.add(G);return G}
+(()=>{const D=window.I18N&&I18N.dict;if(!D)return;Object.assign(D.en||{},{'查理大橋 Karlův most':'Charles Bridge (Karlův most)','塞切尼鏈橋 Széchenyi lánchíd':'Széchenyi Chain Bridge (Széchenyi lánchíd)','新橋（UFO 橋）Most SNP':'UFO Bridge (Most SNP)','理髮師橋 Lazebnický most':"Barber's Bridge (Lazebnický most)",'帝國大橋 Reichsbrücke':'Reichsbrücke (Imperial Bridge)'});
+ Object.assign(D.ja||{},{'查理大橋 Karlův most':'カレル橋（Karlův most）','塞切尼鏈橋 Széchenyi lánchíd':'セーチェーニ鎖橋（Széchenyi lánchíd）','新橋（UFO 橋）Most SNP':'UFO橋（Most SNP）','理髮師橋 Lazebnický most':'理髪師の橋（Lazebnický most）','帝國大橋 Reichsbrücke':'ライヒス橋（Reichsbrücke）'})})();
